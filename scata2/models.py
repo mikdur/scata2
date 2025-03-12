@@ -62,16 +62,16 @@ class ScataTagSet(ScataModel):
         if self.is_valid and self.validated:
             status = ""
         elif not self.validated:
-            status = "(Pending validation)"
+            status = " (Pending validation)"
         else:
-            status = "(Failed, pending deletion)"
+            status = " (Failed, pending deletion)"
 
         if self.validated:
-            size = "({n} tags)".format(n=len(self.tags))
+            size = " ({n} tags)".format(n=len(self.tags))
         else:
             size = ""
 
-        return "{u} {name} {size} {status}".format(u=self.get_owner(),
+        return "{u} {name}{size}{status}".format(u=self.get_owner(),
                                                    name = self.name,
                                                size=size,
                                                status=status)
