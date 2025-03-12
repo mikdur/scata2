@@ -1,4 +1,5 @@
 from django.db import models
+from django.urls import reverse, reverse_lazy
 from django.contrib.auth.models import User
 import json
 
@@ -18,6 +19,9 @@ class ScataModel(models.Model):
         else:
             return "Orphaned"
 
+    def get_absolute_url(self):
+        return reverse("primer-list")
+    
     class Meta:
         abstract = True
 

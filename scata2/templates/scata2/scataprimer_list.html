@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h2>Primers</h2>
+    <a href="{% url "primer-add" %}">Add primer</a>
+    <ul>
+        {% for primer in object_list %}
+            <li>{{ primer.short_name }} <a href="{% url "primer-delete" primer.id %}">Delete</a></li>
+        {% endfor %}
+    </ul>
+{% endblock %}
