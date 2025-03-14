@@ -1,6 +1,6 @@
-{% extends "base.html" %}
+{% extends "scata2_base.html" %}
 
-{% block content %}
+{% block scata2_content %}
 <form enctype="multipart/form-data" action="{% url "tagset-add" %}" method="post">
     {% csrf_token %}
 

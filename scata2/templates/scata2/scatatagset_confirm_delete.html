@@ -1,5 +1,5 @@
-{% extends "base.html" %}
-{% block content %}
+{% extends "scata2_base.html" %}
+{% block scata2_content %}
 <form method="post">
     {% csrf_token %}
         <p>Are you sure you want to delete "{{ object }}"?</p>
