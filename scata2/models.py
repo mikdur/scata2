@@ -5,22 +5,27 @@ import json
 
 
 
-# Abstract base class for Scata models
+# Abstract base class for Scata models where the user interacts
+# with the models
 
 class ScataModel(models.Model):
     owner = models.ForeignKey(User, on_delete = models.CASCADE,
                               null=True, blank=True, editable=True)
     create_date = models.DateField("Create date", auto_now_add=True)
+    deleted = models.BooleanField("Deleted", default=False)
     public = models.BooleanField("Public", default=False)
 
     def get_owner(self):
-        if self.owner:
-            return self.owner.username
+        if self.deleted:
+            d = " (Deleted)"
         else:
-            return "Orphaned"
+            d = ""
 
-    def get_absolute_url(self):
-        return reverse("primer-list")
+        if self.owner:
+            return self.owner.username + d
+        else:
+            return "Orphaned" + d
+
     
     class Meta:
         abstract = True
@@ -45,6 +50,9 @@ class ScataPrimer(ScataModel):
 
         return "{u} {p} {n}".format(u=self.get_owner(), 
                                     p=public, n=self.short_name)
+    
+    def get_absolute_url(self):
+        return reverse("primer-list")
 
 
 # Scata TagSet, used for demultiplexing
@@ -60,7 +68,11 @@ class ScataTagSet(ScataModel):
                                    editable=False)
     tags = models.JSONField(encoder= json.JSONEncoder,
                             decoder= json.JSONDecoder,
-                            verbose_name="Data (dict)", editable=False)
+                            verbose_name="Data (dict)", editable=False,
+                            null=True)
+    tagset_file = models.FileField("Tagset File", 
+                                   upload_to="tagsets/",
+                                   null=True)
     
     def __str__(self):
         if self.is_valid and self.validated:
@@ -79,4 +91,7 @@ class ScataTagSet(ScataModel):
                                                    name = self.name,
                                                size=size,
                                                status=status)
+    
+    def get_absolute_url(self):
+        return reverse("tagset-list")
     
