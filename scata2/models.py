@@ -1,7 +1,7 @@
 from django.db import models
 from django.urls import reverse, reverse_lazy
 from django.contrib.auth.models import User
-import json
+import json, os.path
 
 
 
@@ -94,4 +94,25 @@ class ScataTagSet(ScataModel):
     
     def get_absolute_url(self):
         return reverse("tagset-list")
+    
+
+# Scata File class, used for uploaded files 
+
+class ScataFile(ScataModel):
+    name = models.CharField("File Name", max_length=50)
+    description = models.TextField("Description", default="",
+                                   max_length=500)
+    file = models.FileField("File", upload_to="files/", null=False)
+    file_size = models.PositiveBigIntegerField(default=0, editable=False)
+    sha256 = models.CharField("Sha256 Sum", max_length=100, default="")
+    
+    def __str__(self):
+
+        return "{u} {name} ({size}MB) {sha256}".format(u=self.get_owner(),
+                                          name = os.path.basename(self.file.name),
+                                          size=self.file_size,
+                                          sha256=self.sha256)
+    
+    def get_absolute_url(self):
+        return reverse("file-list")
     

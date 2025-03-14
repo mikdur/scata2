@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import ListView
 from django.views.generic.edit import CreateView, DeleteView
-from scata2.models import ScataPrimer, ScataTagSet
+from scata2.models import ScataFile, ScataPrimer, ScataTagSet
 
 import sys
 
@@ -36,6 +36,33 @@ class DeleteToTrashView(DeleteView,LoginRequiredMixin,
 @login_required
 def index(request):
     return render(request, "scata2/index.html", {})
+
+
+#################################
+#  File views
+#################################
+
+class FileListView(ListOwnedView):
+    model = ScataFile
+
+class FileCreateView(CreateView,LoginRequiredMixin):
+    model = ScataFile
+    fields = ["name", "file", "description"]
+
+    def form_valid(self, form):
+        form.instance.owner = self.request.user
+        return super().form_valid(form)
+
+    def get_form(self, *args, **kwargs):
+        form = super().get_form(*args, **kwargs)  # Get the form as usual
+        user = self.request.user
+        print(repr(user), file=sys.stderr)
+        return form
+
+class FileDeleteView(DeleteToTrashView):
+    model = ScataFile
+    success_url = reverse_lazy("file-list")
+
 
 #################################
 #  Primer views
@@ -74,10 +101,33 @@ class TagSetCreateView(CreateView,LoginRequiredMixin):
     def form_valid(self, form):
         form.instance.owner = self.request.user
         return super().form_valid(form)
-    
 
 class TagSetDeleteView(DeleteToTrashView):
     model = ScataTagSet
     success_url = reverse_lazy("tagset-list")
 
     
+#################################
+#  File views
+#################################
+
+class TagSetListView(ListOwnedView):
+    model = ScataTagSet
+
+class TagSetCreateView(CreateView,LoginRequiredMixin):
+    model = ScataTagSet
+    fields = ["name", "tagset_file"]
+
+    def form_valid(self, form):
+        form.instance.owner = self.request.user
+        return super().form_valid(form)
+
+    def get_form(self, *args, **kwargs):
+        form = super().get_form(*args, **kwargs)  # Get the form as usual
+        user = self.request.user
+        print(repr(user), file=sys.stderr)
+        return form
+
+class TagSetDeleteView(DeleteToTrashView):
+    model = ScataTagSet
+    success_url = reverse_lazy("tagset-list")

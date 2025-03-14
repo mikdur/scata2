@@ -1,0 +1,11 @@
+{% extends "scata2_base.html" %}
+
+{% block scata2_content %}
+    <h2>Files</h2>
+    <a href="{% url "file-add" %}">Add file</a>
+    <ul>
+        {% for file in object_list %}
+            <li>{{ file.name }} <a href="{% url "file-delete" file.id %}">Delete</a></li>
+        {% endfor %}
+    </ul>
+{% endblock %}
