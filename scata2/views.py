@@ -5,24 +5,21 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import ListView
 from django.views.generic.edit import CreateView, DeleteView
+from django.db.models import Q
 from scata2.models import ScataFile, ScataPrimer, ScataTagSet, ScataAmplicon, ScataModel
 
 import sys
 
 
-# Mixin to ensure user is logged in and that the user is the owner of
-# the object.
-
-class OwnerCheckMixin(UserPassesTestMixin):
-    def test_func(self):
-        o = self.get_object()
-        return o.owner == self.request.user and not o.deleted
     
-class FilteredCreateView(CreateView,LoginRequiredMixin):
+class FilteredCreateView(LoginRequiredMixin, CreateView):
+    # Set owner on save
     def form_valid(self, form):
         form.instance.owner = self.request.user
         return super().form_valid(form)
 
+    # Filter any field querysets subclassed from ScataModel to only include owned
+    # objects
     def get_form(self, *args, **kwargs):
         form = super().get_form(*args, **kwargs)  # Get the form as usual
         user = self.request.user
@@ -30,17 +27,24 @@ class FilteredCreateView(CreateView,LoginRequiredMixin):
             if ( hasattr(form.fields[k], "queryset") and 
                 issubclass(form.fields[k].queryset.model, ScataModel) ):
                 form.fields[k].queryset = \
-                    form.fields[k].queryset.filter(owner=user, deleted=False)
+                    form.fields[k].queryset.filter(Q(owner=user, deleted=False) |
+                                                   Q(public=True, deleted=False))
         return form
 
 
-class ListOwnedView(ListView,LoginRequiredMixin):
+class ListOwnedView(LoginRequiredMixin, ListView):
     def get_queryset(self):
-        return self.model.objects.filter(owner=self.request.user,
-                                         deleted=False)
+        return self.model.objects.filter(Q(owner=self.request.user,
+                                           deleted=False) |
+                                         Q(public=True, deleted=False))
 
-class DeleteToTrashView(DeleteView,LoginRequiredMixin,
-                       OwnerCheckMixin):
+class DeleteToTrashView(LoginRequiredMixin,
+                       UserPassesTestMixin,DeleteView):
+    def test_func(self):
+        o = self.get_object()
+        print("Doo", file=sys.stderr)
+        return o.owner == self.request.user and not o.deleted
+    
     def form_valid(self, form):
         self.object.deleted=True
         self.object.save()

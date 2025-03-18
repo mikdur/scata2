@@ -17,15 +17,18 @@ class ScataModel(models.Model):
     public = models.BooleanField("Public", default=False)
 
     def get_owner(self):
+        d=""
         if self.deleted:
             d = " (Deleted)"
-        else:
-            d = ""
+
+        p=""
+        if self.public:
+            p=" (Public)"
 
         if self.owner:
-            return self.owner.username + d
+            return self.owner.username + d + p
         else:
-            return "Orphaned" + d
+            return "Orphaned" + d + p
 
     
     class Meta:
@@ -65,13 +68,8 @@ class ScataPrimer(ScataModel):
 
     def __str__(self):
                 
-        if self.public:
-            public = "(Public)"
-        else:
-            public = ""
-
-        return "{u} {p} {n}".format(u=self.get_owner(), 
-                                    p=public, n=self.short_name)
+        return "{u} {n}".format(u=self.get_owner(), 
+                                    n=self.short_name)
     
     def get_absolute_url(self):
         return reverse("primers-list")
