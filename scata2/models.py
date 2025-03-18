@@ -58,7 +58,7 @@ class ScataFile(ScataModel):
 # Scata Primer class. Used by ScataDataset 
 
 class ScataPrimer(ScataModel):
-    short_name = models.CharField("Short name", max_length=20)
+    name = models.CharField("Short name", max_length=50)
     sequence = models.CharField("Primer sequence", max_length=100)
     mismatches = models.DecimalField("Max missmatches", 
                                      max_digits=2, decimal_places=0)

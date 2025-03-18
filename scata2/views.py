@@ -84,7 +84,7 @@ class PrimerListView(ListOwnedView):
     
 class PrimerCreateView(FilteredCreateView):
     model = ScataPrimer
-    fields = ["short_name", "sequence", "mismatches", "description"]
+    fields = ["name", "sequence", "mismatches", "description"]
 
 class PrimerDeleteView(DeleteToTrashView):
     model = ScataPrimer
