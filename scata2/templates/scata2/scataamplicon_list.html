@@ -1,0 +1,11 @@
+{% extends "scata2_base.html" %}
+
+{% block scata2_content %}
+    <h2>Amplicons</h2>
+    <a href="{% url "amplicon-add" %}">Add amplicon</a>
+    <ul>
+        {% for amplicon in object_list %}
+            <li>{{ amplicon.name }} <a href="{% url "amplicon-delete" amplicon.id %}">Delete</a></li>
+        {% endfor %}
+    </ul>
+{% endblock %}

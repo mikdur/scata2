@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import ListView
 from django.views.generic.edit import CreateView, DeleteView
-from scata2.models import ScataFile, ScataPrimer, ScataTagSet
+from scata2.models import ScataFile, ScataPrimer, ScataTagSet, ScataAmplicon, ScataModel
 
 import sys
 
@@ -17,6 +17,22 @@ class OwnerCheckMixin(UserPassesTestMixin):
     def test_func(self):
         o = self.get_object()
         return o.owner == self.request.user and not o.deleted
+    
+class FilteredCreateView(CreateView,LoginRequiredMixin):
+    def form_valid(self, form):
+        form.instance.owner = self.request.user
+        return super().form_valid(form)
+
+    def get_form(self, *args, **kwargs):
+        form = super().get_form(*args, **kwargs)  # Get the form as usual
+        user = self.request.user
+        for k in form.fields.keys():
+            if ( hasattr(form.fields[k], "queryset") and 
+                issubclass(form.fields[k].queryset.model, ScataModel) ):
+                form.fields[k].queryset = \
+                    form.fields[k].queryset.filter(owner=user, deleted=False)
+        return form
+
 
 class ListOwnedView(ListView,LoginRequiredMixin):
     def get_queryset(self):
@@ -45,19 +61,9 @@ def index(request):
 class FileListView(ListOwnedView):
     model = ScataFile
 
-class FileCreateView(CreateView,LoginRequiredMixin):
+class FileCreateView(FilteredCreateView):
     model = ScataFile
     fields = ["name", "file", "description"]
-
-    def form_valid(self, form):
-        form.instance.owner = self.request.user
-        return super().form_valid(form)
-
-    def get_form(self, *args, **kwargs):
-        form = super().get_form(*args, **kwargs)  # Get the form as usual
-        user = self.request.user
-        print(repr(user), file=sys.stderr)
-        return form
 
 class FileDeleteView(DeleteToTrashView):
     model = ScataFile
@@ -72,13 +78,9 @@ class PrimerListView(ListOwnedView):
     model = ScataPrimer
 
     
-class PrimerCreateView(CreateView,LoginRequiredMixin):
+class PrimerCreateView(FilteredCreateView):
     model = ScataPrimer
     fields = ["short_name", "sequence", "mismatches", "description"]
-
-    def form_valid(self, form):
-        form.instance.owner = self.request.user
-        return super().form_valid(form)
 
 class PrimerDeleteView(DeleteToTrashView):
     model = ScataPrimer
@@ -94,40 +96,29 @@ class PrimerDeleteView(DeleteToTrashView):
 class TagSetListView(ListOwnedView):
     model = ScataTagSet
 
-class TagSetCreateView(CreateView,LoginRequiredMixin):
+class TagSetCreateView(FilteredCreateView):
     model = ScataTagSet
     fields = ["name", "tagset_file"]
-
-    def form_valid(self, form):
-        form.instance.owner = self.request.user
-        return super().form_valid(form)
-
+    
 class TagSetDeleteView(DeleteToTrashView):
     model = ScataTagSet
     success_url = reverse_lazy("tagset-list")
 
+
+#################################
+#  Amplicon views
+#################################
+
+class AmpliconListView(ListOwnedView):
+    model = ScataAmplicon
+
+class AmpliconCreateView(FilteredCreateView):
+    model = ScataAmplicon
+    fields = ["name", "five_prime_primer", "five_prime_tag",
+              "three_prime_primer", "three_prime_tag", 
+              "min_length", "max_length"]
+
     
-#################################
-#  File views
-#################################
-
-class TagSetListView(ListOwnedView):
-    model = ScataTagSet
-
-class TagSetCreateView(CreateView,LoginRequiredMixin):
-    model = ScataTagSet
-    fields = ["name", "tagset_file"]
-
-    def form_valid(self, form):
-        form.instance.owner = self.request.user
-        return super().form_valid(form)
-
-    def get_form(self, *args, **kwargs):
-        form = super().get_form(*args, **kwargs)  # Get the form as usual
-        user = self.request.user
-        print(repr(user), file=sys.stderr)
-        return form
-
-class TagSetDeleteView(DeleteToTrashView):
-    model = ScataTagSet
+class AmpliconDeleteView(DeleteToTrashView):
+    model = ScataAmplicon
     success_url = reverse_lazy("tagset-list")

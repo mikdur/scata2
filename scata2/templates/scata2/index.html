@@ -3,11 +3,14 @@
 {% block scata2_content %}
 
 <ul>
-    <li><a href="tagsets/">Tagsets</a></li>
-    <li><a href="primers/">Primers</a></li>
-    <li><a href="dataset/">Datasets</a></li>
-    <li><a href="jobs/">Jobs</a></li>
-    <li><a href="files/">Files</a></li>
+    <li><a href="{% url "primer-list" %}">Primers</a></li>
+    <li><a href="{% url "tagset-list" %}">Tagsets</a></li>
+    <li><a href="{% url "amplicon-list" %}">Amplicons</a></li>
+{% comment %}
+    <li><a href="{% url "dataset-list" %}">Datasets</a></li>
+    <li><a href="{% url "job-list" %}">Jobs</a></li>
+ {% endcomment %}
+    <li><a href="{% url "file-list" %}">Files</a></li>
 </ul>
         
 

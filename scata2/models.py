@@ -1,6 +1,7 @@
 from django.db import models
 from django.urls import reverse, reverse_lazy
 from django.contrib.auth.models import User
+from django.core.validators import MinValueValidator, MaxValueValidator
 import json, os.path
 
 
@@ -30,6 +31,27 @@ class ScataModel(models.Model):
     class Meta:
         abstract = True
 
+
+# Scata File class, used for uploaded files 
+
+class ScataFile(ScataModel):
+    name = models.CharField("File Name", max_length=50)
+    description = models.TextField("Description", default="",
+                                   max_length=500)
+    file = models.FileField("File", upload_to="files/", null=False)
+    file_size = models.PositiveBigIntegerField(default=0, editable=False)
+    sha256 = models.CharField("Sha256 Sum", max_length=100, default="")
+    
+    def __str__(self):
+
+        return "{u} {name} ({size}MB) {sha256}".format(u=self.get_owner(),
+                                          name = os.path.basename(self.file.name),
+                                          size=self.file_size,
+                                          sha256=self.sha256)
+    
+    def get_absolute_url(self):
+        return reverse("file-list")
+    
 # Scata Primer class. Used by ScataDataset 
 
 class ScataPrimer(ScataModel):
@@ -52,7 +74,7 @@ class ScataPrimer(ScataModel):
                                     p=public, n=self.short_name)
     
     def get_absolute_url(self):
-        return reverse("primer-list")
+        return reverse("primers-list")
 
 
 # Scata TagSet, used for demultiplexing
@@ -70,9 +92,8 @@ class ScataTagSet(ScataModel):
                             decoder= json.JSONDecoder,
                             verbose_name="Data (dict)", editable=False,
                             null=True)
-    tagset_file = models.FileField("Tagset File", 
-                                   upload_to="tagsets/",
-                                   null=True)
+    tagset_file = models.ForeignKey(ScataFile, 
+                                    null=True, on_delete=models.SET_NULL)
     
     def __str__(self):
         if self.is_valid and self.validated:
@@ -96,23 +117,47 @@ class ScataTagSet(ScataModel):
         return reverse("tagset-list")
     
 
-# Scata File class, used for uploaded files 
-
-class ScataFile(ScataModel):
-    name = models.CharField("File Name", max_length=50)
-    description = models.TextField("Description", default="",
-                                   max_length=500)
-    file = models.FileField("File", upload_to="files/", null=False)
-    file_size = models.PositiveBigIntegerField(default=0, editable=False)
-    sha256 = models.CharField("Sha256 Sum", max_length=100, default="")
+class ScataAmplicon(ScataModel):
+    name = models.CharField("Amplicon name", max_length=50)
+    description = models.TextField("Description", max_length=300,
+                                   blank=True, null=True)
+    five_prime_primer = models.ForeignKey(ScataPrimer, null=True, blank=True,
+                                          on_delete=models.SET_NULL, 
+                                          verbose_name="5' primer",
+                                          related_name="five_prime_primer")
+    five_prime_tag = models.ForeignKey(ScataTagSet, null=True,  blank=True,
+                                       on_delete=models.SET_NULL,
+                                       verbose_name="5' tagset",
+                                       related_name="five_prime_tagset")
+    three_prime_primer = models.ForeignKey(ScataPrimer, null=True,  blank=True,
+                                           on_delete=models.SET_NULL,
+                                           verbose_name="3' primer",
+                                           related_name="three_prime_primer")
+    three_prime_tag = models.ForeignKey(ScataTagSet, null=True,  blank=True,
+                                        on_delete=models.SET_NULL,
+                                        verbose_name="3' tagset",
+                                        related_name="three_prime_tagset")
+    min_length=models.IntegerField("Minimum length", default=0,
+                                   validators=[MinValueValidator(0, "Minimum amplicon length is 0"),
+                                               MaxValueValidator(10000, "Max amplicon length is 10kbp")])
+    max_length=models.IntegerField("Maximum length (max 10kbp)", default=10000,
+                                   validators=[MinValueValidator(0, "Minimum amplicon length is 0"),
+                                               MaxValueValidator(10000, "Max amplicon length is 10kbp")])
     
     def __str__(self):
 
-        return "{u} {name} ({size}MB) {sha256}".format(u=self.get_owner(),
-                                          name = os.path.basename(self.file.name),
-                                          size=self.file_size,
-                                          sha256=self.sha256)
-    
+        t5=self.five_prime_tag.name if self.five_prime_tag else ""
+        p5=self.five_prime_primer.short_name if self.five_prime_primer else ""
+        p3=self.three_prime_primer.short_name if self.three_prime_primer else ""
+        t3=self.three_prime_tag.name if self.three_prime_tag else ""
+
+        return "{u} {name} ({t5}{p5} - {p3}{t3})".format(u=self.get_owner(),
+                                                   name = self.name,
+                                                   t5=t5, p5=p5,
+                                                   p3=p3, t3=t3)
+
     def get_absolute_url(self):
-        return reverse("file-list")
-    
+        return reverse("amplicon-list")
+
+
+
