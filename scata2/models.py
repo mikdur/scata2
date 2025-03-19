@@ -69,7 +69,7 @@ class ScataPrimer(ScataModel):
     def __str__(self):
                 
         return "{u} {n}".format(u=self.get_owner(), 
-                                    n=self.short_name)
+                                    n=self.name)
     
     def get_absolute_url(self):
         return reverse("primers-list")
@@ -145,8 +145,8 @@ class ScataAmplicon(ScataModel):
     def __str__(self):
 
         t5=self.five_prime_tag.name if self.five_prime_tag else ""
-        p5=self.five_prime_primer.short_name if self.five_prime_primer else ""
-        p3=self.three_prime_primer.short_name if self.three_prime_primer else ""
+        p5=self.five_prime_primer.name if self.five_prime_primer else ""
+        p3=self.three_prime_primer.name if self.three_prime_primer else ""
         t3=self.three_prime_tag.name if self.three_prime_tag else ""
 
         return "{u} {name} ({t5}{p5} - {p3}{t3})".format(u=self.get_owner(),

@@ -121,6 +121,13 @@ class AmpliconCreateView(FilteredCreateView):
     fields = ["name", "five_prime_primer", "five_prime_tag",
               "three_prime_primer", "three_prime_tag", 
               "min_length", "max_length"]
+    
+    def get_form(self, *args, **kwargs):
+        form = super().get_form(*args, **kwargs)  # Get the form as usual
+        for k in ['five_prime_tag', 'three_prime_tag']:
+            form.fields[k].queryset = \
+                form.fields[k].queryset.filter(validated=True)
+        return form
 
     
 class AmpliconDeleteView(DeleteToTrashView):
