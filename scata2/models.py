@@ -10,6 +10,10 @@ import json, os.path
 # with the models
 
 class ScataModel(models.Model):
+    name = models.CharField("Name", max_length=50)
+    description = models.TextField("Description", max_length=500,
+                                   blank=True, null=True)
+
     owner = models.ForeignKey(User, on_delete = models.CASCADE,
                               null=True, blank=True, editable=True)
     create_date = models.DateField("Create date", auto_now_add=True)
@@ -38,9 +42,6 @@ class ScataModel(models.Model):
 # Scata File class, used for uploaded files 
 
 class ScataFile(ScataModel):
-    name = models.CharField("File Name", max_length=50)
-    description = models.TextField("Description", default="",
-                                   max_length=500)
     file = models.FileField("File", upload_to="files/", null=False)
     file_size = models.PositiveBigIntegerField(default=0, editable=False)
     sha256 = models.CharField("Sha256 Sum", max_length=100, default="")
@@ -58,7 +59,6 @@ class ScataFile(ScataModel):
 # Scata Primer class. Used by ScataDataset 
 
 class ScataPrimer(ScataModel):
-    name = models.CharField("Short name", max_length=50)
     sequence = models.CharField("Primer sequence", max_length=100)
     mismatches = models.DecimalField("Max missmatches", 
                                      max_digits=2, decimal_places=0)
@@ -79,7 +79,6 @@ class ScataPrimer(ScataModel):
 # 
 
 class ScataTagSet(ScataModel):
-    name = models.CharField("Tagset Name", max_length=50)
     is_valid = models.BooleanField("Valid", default=False, 
                                    editable=False)
     validated = models.BooleanField("Validated", default=False, 
@@ -116,7 +115,6 @@ class ScataTagSet(ScataModel):
     
 
 class ScataAmplicon(ScataModel):
-    name = models.CharField("Amplicon name", max_length=50)
     description = models.TextField("Description", max_length=300,
                                    blank=True, null=True)
     five_prime_primer = models.ForeignKey(ScataPrimer, null=True, blank=True,
@@ -156,6 +154,5 @@ class ScataAmplicon(ScataModel):
 
     def get_absolute_url(self):
         return reverse("amplicon-list")
-
-
-
+    
+    

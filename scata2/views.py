@@ -84,7 +84,7 @@ class PrimerListView(ListOwnedView):
     
 class PrimerCreateView(FilteredCreateView):
     model = ScataPrimer
-    fields = ["name", "sequence", "mismatches", "description"]
+    fields = ["name", "description", "sequence", "mismatches", "description"]
 
 class PrimerDeleteView(DeleteToTrashView):
     model = ScataPrimer
@@ -102,7 +102,7 @@ class TagSetListView(ListOwnedView):
 
 class TagSetCreateView(FilteredCreateView):
     model = ScataTagSet
-    fields = ["name", "tagset_file"]
+    fields = ["name", "description", "tagset_file"]
     
 class TagSetDeleteView(DeleteToTrashView):
     model = ScataTagSet
@@ -118,7 +118,7 @@ class AmpliconListView(ListOwnedView):
 
 class AmpliconCreateView(FilteredCreateView):
     model = ScataAmplicon
-    fields = ["name", "five_prime_primer", "five_prime_tag",
+    fields = ["name", "description", "five_prime_primer", "five_prime_tag",
               "three_prime_primer", "three_prime_tag", 
               "min_length", "max_length"]
     
