@@ -6,7 +6,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import ListView
 from django.views.generic.edit import CreateView, DeleteView
 from django.db.models import Q
-from scata2.models import ScataFile, ScataPrimer, ScataTagSet, ScataAmplicon, ScataModel
+from scata2.models import ScataFile, ScataPrimer, ScataTagSet, ScataAmplicon, \
+                          ScataReferenceSet, ScataModel
 
 import sys
 
@@ -129,7 +130,21 @@ class AmpliconCreateView(FilteredCreateView):
                 form.fields[k].queryset.filter(validated=True)
         return form
 
-    
 class AmpliconDeleteView(DeleteToTrashView):
     model = ScataAmplicon
     success_url = reverse_lazy("tagset-list")
+
+#################################
+#  RefSeq views
+#################################
+
+class ReferenceSetListView(ListOwnedView):
+    model = ScataReferenceSet
+
+class ReferenceSetCreateView(FilteredCreateView):
+    model = ScataReferenceSet
+    fields = ["name", "description", "refseq_file", "amplicon"]
+    
+class ReferenceSetDeleteView(DeleteToTrashView):
+    model = ScataReferenceSet
+    success_url = reverse_lazy("referenceset-list")

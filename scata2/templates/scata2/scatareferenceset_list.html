@@ -1,0 +1,11 @@
+{% extends "scata2_base.html" %}
+
+{% block scata2_content %}
+    <h2>Reference sets</h2>
+    <a href="{% url "referenceset-add" %}">Add referenceset</a>
+    <ul>
+        {% for refset in object_list %}
+            <li>{{ refset.name }} <a href="{% url "referenceset-delete" refset.id %}">Delete</a></li>
+        {% endfor %}
+    </ul>
+{% endblock %}

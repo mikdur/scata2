@@ -123,7 +123,7 @@ class ScataAmplicon(ScataModel):
                                           related_name="five_prime_primer")
     five_prime_tag = models.ForeignKey(ScataTagSet, null=True,  blank=True,
                                        on_delete=models.SET_NULL,
-                                       verbose_name="5' tagset",
+                                       verbose_name="5' tagset (not used when clustering)",
                                        related_name="five_prime_tagset")
     three_prime_primer = models.ForeignKey(ScataPrimer, null=True,  blank=True,
                                            on_delete=models.SET_NULL,
@@ -131,7 +131,7 @@ class ScataAmplicon(ScataModel):
                                            related_name="three_prime_primer")
     three_prime_tag = models.ForeignKey(ScataTagSet, null=True,  blank=True,
                                         on_delete=models.SET_NULL,
-                                        verbose_name="3' tagset",
+                                        verbose_name="3' tagset (not used when clustering)",
                                         related_name="three_prime_tagset")
     min_length=models.IntegerField("Minimum length", default=0,
                                    validators=[MinValueValidator(0, "Minimum amplicon length is 0"),
@@ -155,4 +155,37 @@ class ScataAmplicon(ScataModel):
     def get_absolute_url(self):
         return reverse("amplicon-list")
     
+class ScataReferenceSet(ScataModel):
+    amplicon = models.ForeignKey(ScataAmplicon, null=True, blank=True,
+                                 on_delete=models.PROTECT,
+                                 verbose_name="Filter database to contain region "
+                                 "defined by this amplicon. Leave empty to disable.")
+    refseq_file = models.ForeignKey(ScataFile, null=False, blank=False,
+                                verbose_name="File with references",
+                                on_delete=models.PROTECT)
+    is_valid = models.BooleanField(default=False, editable=False)
+    validated = models.BooleanField(default=False, editable=False)
+    num_seqs = models.IntegerField(default=0, editable=False)
+    refseq = models.FileField(editable=False, null=True)
+    seq_count = models.IntegerField(editable=False, default=0)
+
+    def __str__(self):
+        if self.is_valid and self.validated:
+            status = ""
+        elif not self.validated:
+            status = " (Pending validation)"
+        else:
+            status = " (Failed, pending deletion)"
+
+        if self.validated:
+            size = " ({n} sequences)".format(n=len(self.tags))
+        else:
+            size = ""
+
+        return "{u} {name}{size}{status}".format(u=self.get_owner(),
+                                                   name = self.name,
+                                               size=size,
+                                               status=status)
     
+    def get_absolute_url(self):
+        return reverse("referenceset-list")
