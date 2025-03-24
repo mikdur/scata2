@@ -1,0 +1,10 @@
+{% extends "scata2_base.html" %}
+
+{% block scata2_content %}
+<form enctype="multipart/form-data" action="{% url "dataset-add" %}" method="post">
+    {% csrf_token %}
+
+    {{ form }}
+    <input type="submit" value="Submit">
+</form>
+{% endblock %}

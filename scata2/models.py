@@ -165,7 +165,6 @@ class ScataReferenceSet(ScataModel):
                                 on_delete=models.PROTECT)
     is_valid = models.BooleanField(default=False, editable=False)
     validated = models.BooleanField(default=False, editable=False)
-    num_seqs = models.IntegerField(default=0, editable=False)
     refseq = models.FileField(editable=False, null=True)
     seq_count = models.IntegerField(editable=False, default=0)
 
@@ -189,3 +188,69 @@ class ScataReferenceSet(ScataModel):
     
     def get_absolute_url(self):
         return reverse("referenceset-list")
+    
+class ScataDataset(ScataModel):
+    amplicon = models.ForeignKey(ScataAmplicon, null=False, blank=False,
+                                 on_delete=models.PROTECT,
+                                 verbose_name="Amplicon for filtering") 
+    mean_qual = models.IntegerField("Minimum mean read quality", blank=False, 
+                                    null=False, default=20,
+                                    validators=[MinValueValidator(10, "Min is 10"),
+                                               MaxValueValidator(100, "Max is 100")])
+    min_qual = models.IntegerField("Minimum quality of any base", blank=False, 
+                                    null=False, default=20,
+                                    validators=[MinValueValidator(1, "Min is 1"),
+                                               MaxValueValidator(100, "Max is 100")])
+    kmer_size = models.IntegerField("Overlap join: kmer size", blank=False, 
+                                    null=False, default=7,
+                                    validators=[MinValueValidator(5, "Min is 5"),
+                                               MaxValueValidator(15, "Max is 15")])
+    kmer_hsp_count = models.IntegerField("Overlap join: HSP adjacent kmers", blank=False, 
+                                    null=False, default=5,
+                                    validators=[MinValueValidator(3, "Min is 3"),
+                                               MaxValueValidator(10, "Max is 10")])
+    kmer_shared = models.IntegerField("Overlap join: number of shared kmers", blank=False, 
+                                    null=False, default=10,
+                                    validators=[MinValueValidator(5, "Min is 5"),
+                                               MaxValueValidator(20, "Max is 20")])
+    filter_method = models.CharField("Filtering type", blank=False, null=False,
+                                     max_length=5, choices={
+                                         "fsq":"Full sequence, quality screen",
+                                         "fs":"Full sequence, NO quality filtering",
+                                         "hqr":"Extract High Quality Region",
+                                         "ampq":"Amplicon quality"})
+    file1 = models.ForeignKey(ScataFile, null=False, blank=False,
+                              verbose_name="File 1",
+                              on_delete=models.PROTECT,
+                              related_name="dataset_file1")
+    file2 = models.ForeignKey(ScataFile, null=True, blank=True,
+                              verbose_name="File 2",
+                              on_delete=models.PROTECT,
+                              related_name="dataset_file2")
+    
+    is_valid = models.BooleanField(default=False, editable=False)
+    validated = models.BooleanField(default=False, editable=False)
+    seq_count = models.IntegerField(editable=False, default=0)
+
+    
+    def __str__(self):
+        if self.is_valid and self.validated:
+            status = ""
+        elif not self.validated:
+            status = " (Pending validation)"
+        else:
+            status = " (Failed, pending deletion)"
+
+        if self.validated:
+            size = " ({n} sequences)".format(n=len(self.tags))
+        else:
+            size = ""
+
+        return "{u} {name}{size}{status}".format(u=self.get_owner(),
+                                                   name = self.name,
+                                               size=size,
+                                               status=status)
+    
+    def get_absolute_url(self):
+        return reverse("dataset-list")
+    

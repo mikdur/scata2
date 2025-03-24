@@ -7,7 +7,7 @@ from django.views.generic import ListView
 from django.views.generic.edit import CreateView, DeleteView
 from django.db.models import Q
 from scata2.models import ScataFile, ScataPrimer, ScataTagSet, ScataAmplicon, \
-                          ScataReferenceSet, ScataModel
+                          ScataReferenceSet, ScataDataset, ScataModel
 
 import sys
 
@@ -148,3 +148,22 @@ class ReferenceSetCreateView(FilteredCreateView):
 class ReferenceSetDeleteView(DeleteToTrashView):
     model = ScataReferenceSet
     success_url = reverse_lazy("referenceset-list")
+
+
+#################################
+#  Dataset views
+#################################
+
+class DataSetListView(ListOwnedView):
+    model = ScataDataset
+
+class DataSetCreateView(FilteredCreateView):
+    model = ScataDataset
+    fields = ["name", "description", "amplicon", "min_qual", "mean_qual",
+              "kmer_size", "kmer_hsp_count", "kmer_shared",
+              "filter_method", "file1", "file2"]
+    
+class DataSetDeleteView(DeleteToTrashView):
+    model = ScataDataset
+    success_url = reverse_lazy("dataset-list")
+

@@ -1,0 +1,11 @@
+{% extends "scata2_base.html" %}
+
+{% block scata2_content %}
+    <h2>Datasets</h2>
+    <a href="{% url "dataset-add" %}">Add dataset</a>
+    <ul>
+        {% for dataset in object_list %}
+            <li>{{ dataset.name }} <a href="{% url "dataset-delete" dataset.id %}">Delete</a></li>
+        {% endfor %}
+    </ul>
+{% endblock %}
