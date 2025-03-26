@@ -1,0 +1,11 @@
+{% extends "scata2_base.html" %}
+
+{% block scata2_content %}
+    <h2>Jobs</h2>
+    <a href="{% url "job-add" %}">Add job</a>
+    <ul>
+        {% for job in object_list %}
+            <li>{{ job.name }} <a href="{% url "job-delete" job.id %}">Delete</a></li>
+        {% endfor %}
+    </ul>
+{% endblock %}

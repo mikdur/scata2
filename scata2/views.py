@@ -7,7 +7,7 @@ from django.views.generic import ListView
 from django.views.generic.edit import CreateView, DeleteView
 from django.db.models import Q
 from scata2.models import ScataFile, ScataPrimer, ScataTagSet, ScataAmplicon, \
-                          ScataReferenceSet, ScataDataset, ScataModel
+                          ScataReferenceSet, ScataDataset, ScataJob, ScataModel
 
 import sys
 
@@ -167,3 +167,19 @@ class DataSetDeleteView(DeleteToTrashView):
     model = ScataDataset
     success_url = reverse_lazy("dataset-list")
 
+#################################
+#  Job views
+#################################
+
+class JobListView(ListOwnedView):
+    model = ScataJob
+
+class JobCreateView(FilteredCreateView):
+    model = ScataJob
+    fields = ["name", "description", "distance", "min_alignment",
+              "mismatch_pen", "open_pen", "extend_pen", "endgap_pen",
+              "max_homopolymer", "downsample", "lowfreq", "repseqs"]
+    
+class JobDeleteView(DeleteToTrashView):
+    model = ScataJob
+    success_url = reverse_lazy("job-list")
