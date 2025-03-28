@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_q'
 ]
 
 MIDDLEWARE = [
@@ -131,3 +132,35 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/" 
 
+# Use file cache during development
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
+        "LOCATION": os.path.join(BASE_DIR, "django_cache"),
+    }
+}
+
+# django-q2 settings
+Q_CLUSTER = {
+    'name': 'scata2',
+    'workers': 8,
+    'recycle': 100,
+    'timeout': 60,
+    'compress': True,
+    'save_limit': 250,
+    'queue_limit': 500,
+    'cpu_affinity': 1,
+    'label': 'Scata2 Q',
+    'orm': 'default',
+    'ALT_CLUSTERS': {
+        'long': {
+            'timeout': 3000,
+            'retry': 3600,
+            'max_attempts': 2,
+        },
+        'short': {
+            'timeout': 10,
+            'max_attempts': 1,
+        },
+    }
+}

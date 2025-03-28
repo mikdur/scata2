@@ -2,7 +2,9 @@ from django.db import models
 from django.urls import reverse, reverse_lazy
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
-import json, os.path
+from picklefield.fields import PickledObjectField
+
+import os.path
 
 
 
@@ -13,7 +15,8 @@ class ScataModel(models.Model):
     name = models.CharField("Name", max_length=50)
     description = models.TextField("Description", max_length=500,
                                    blank=True, null=True)
-
+    errors = models.TextField("Error description", max_length=4000,
+                              blank=True, default="")
     owner = models.ForeignKey(User, on_delete = models.CASCADE,
                               null=True, blank=True, editable=True)
     create_date = models.DateField("Create date", auto_now_add=True)
@@ -48,13 +51,15 @@ class ScataFile(ScataModel):
     
     def __str__(self):
 
-        return "{u} {name} ({size}MB) {sha256}".format(u=self.get_owner(),
-                                          name = os.path.basename(self.file.name),
+        return "{u} {name} ({filename}) ({size}MB) {sha256}".format(u=self.get_owner(),
+                                          name=self.name,
+                                          filename = os.path.basename(self.file.name),
                                           size=self.file_size,
                                           sha256=self.sha256)
     
     def get_absolute_url(self):
         return reverse("file-list")
+    
     
 # Scata Primer class. Used by ScataDataset 
 
@@ -85,10 +90,8 @@ class ScataTagSet(ScataModel):
                                     editable=False)
     num_tags = models.IntegerField("Number if tags", default=0, 
                                    editable=False)
-    tags = models.JSONField(encoder= json.JSONEncoder,
-                            decoder= json.JSONDecoder,
-                            verbose_name="Data (dict)", editable=False,
-                            null=True)
+    tags = PickledObjectField(verbose_name="Data (dict)", editable=False,
+                            null=True, compress=True)
     tagset_file = models.ForeignKey(ScataFile, 
                                     null=True, on_delete=models.SET_NULL)
     
@@ -118,19 +121,19 @@ class ScataAmplicon(ScataModel):
     description = models.TextField("Description", max_length=300,
                                    blank=True, null=True)
     five_prime_primer = models.ForeignKey(ScataPrimer, null=True, blank=True,
-                                          on_delete=models.SET_NULL, 
+                                          on_delete=models.PROTECT, 
                                           verbose_name="5' primer",
                                           related_name="five_prime_primer")
     five_prime_tag = models.ForeignKey(ScataTagSet, null=True,  blank=True,
-                                       on_delete=models.SET_NULL,
+                                       on_delete=models.PROTECT,
                                        verbose_name="5' tagset (not used when clustering)",
                                        related_name="five_prime_tagset")
     three_prime_primer = models.ForeignKey(ScataPrimer, null=True,  blank=True,
-                                           on_delete=models.SET_NULL,
+                                           on_delete=models.PROTECT,
                                            verbose_name="3' primer",
                                            related_name="three_prime_primer")
     three_prime_tag = models.ForeignKey(ScataTagSet, null=True,  blank=True,
-                                        on_delete=models.SET_NULL,
+                                        on_delete=models.PROTECT,
                                         verbose_name="3' tagset (not used when clustering)",
                                         related_name="three_prime_tagset")
     min_length=models.IntegerField("Minimum length", default=0,

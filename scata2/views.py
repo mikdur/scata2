@@ -8,7 +8,9 @@ from django.views.generic.edit import CreateView, DeleteView
 from django.db.models import Q
 from scata2.models import ScataFile, ScataPrimer, ScataTagSet, ScataAmplicon, \
                           ScataReferenceSet, ScataDataset, ScataJob, ScataModel
+import scata2.backend
 
+import django_q.tasks as q2
 import sys
 
 
@@ -104,6 +106,16 @@ class TagSetListView(ListOwnedView):
 class TagSetCreateView(FilteredCreateView):
     model = ScataTagSet
     fields = ["name", "description", "tagset_file"]
+
+    def form_valid(self, form):
+        # Call the parent's form_valid() to save the form
+        response = super().form_valid(form)
+        task_id = q2.async_task(scata2.backend.parse_tagset, self.object.pk,
+                      task_name="tagset pk={id}".format(id=self.object.pk))
+        if q2.result(task_id, wait=2000):
+            pass
+        return response
+
     
 class TagSetDeleteView(DeleteToTrashView):
     model = ScataTagSet
