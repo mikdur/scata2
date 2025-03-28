@@ -72,6 +72,13 @@ class FileCreateView(FilteredCreateView):
     model = ScataFile
     fields = ["name", "file", "description"]
 
+    def form_valid(self, form):
+        # Call the parent's form_valid() to save the form
+        response = super().form_valid(form)
+        task_id = q2.async_task(scata2.backend.check_file, self.object.pk,
+                      task_name="file checksum pk={id}".format(id=self.object.pk))
+        return response
+
 class FileDeleteView(DeleteToTrashView):
     model = ScataFile
     success_url = reverse_lazy("file-list")
@@ -112,8 +119,6 @@ class TagSetCreateView(FilteredCreateView):
         response = super().form_valid(form)
         task_id = q2.async_task(scata2.backend.parse_tagset, self.object.pk,
                       task_name="tagset pk={id}".format(id=self.object.pk))
-        if q2.result(task_id, wait=2000):
-            pass
         return response
 
     

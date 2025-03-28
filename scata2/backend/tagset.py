@@ -1,4 +1,4 @@
-from scata2.models import ScataFile, ScataTagSet
+from scata2.models import ScataTagSet
 import re
 
 
