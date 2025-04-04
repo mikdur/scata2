@@ -3,10 +3,10 @@ from django.urls import reverse, reverse_lazy
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
 from picklefield.fields import PickledObjectField
+from .storages import get_file_storage
+
 
 import os.path
-
-
 
 # Abstract base class for Scata models where the user interacts
 # with the models
@@ -45,7 +45,8 @@ class ScataModel(models.Model):
 # Scata File class, used for uploaded files 
 
 class ScataFile(ScataModel):
-    file = models.FileField("File", upload_to="files/", null=False)
+    file = models.FileField("File", null=False,
+                            storage=get_file_storage)
     file_size = models.PositiveBigIntegerField(default=0, editable=False)
     sha256 = models.CharField("Sha256 Sum", max_length=100, default="")
     

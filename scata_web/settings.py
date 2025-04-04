@@ -140,6 +140,28 @@ CACHES = {
     }
 }
 
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+    
+    "scata_files": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+        "OPTIONS": {
+            "location": "../files/scata_files",
+        },
+    },
+    "scata_work": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+        "OPTIONS": {
+            "location": "../files/scata_tmp",
+        },
+    },
+}
+
 # django-q2 settings
 Q_CLUSTER = {
     'name': 'scata2',
