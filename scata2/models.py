@@ -78,7 +78,7 @@ class ScataPrimer(ScataModel):
                                     n=self.name)
     
     def get_absolute_url(self):
-        return reverse("primers-list")
+        return reverse("primer-list")
 
 
 # Scata TagSet, used for demultiplexing

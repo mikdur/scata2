@@ -10,4 +10,5 @@ admin.site.register(scata2.models.ScataAmplicon)
 admin.site.register(scata2.models.ScataFile)
 admin.site.register(scata2.models.ScataReferenceSet)
 admin.site.register(scata2.models.ScataJob)
+admin.site.register(scata2.models.ScataDataset)
 
