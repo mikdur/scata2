@@ -1,0 +1,141 @@
+# Parser to read and quality-filter Read results
+
+from Bio import SeqIO
+from Bio.Seq import Seq
+from .qualseq import QualSeq, QualFile
+from .filterseq import filter_full, filter_hqr, SeqDeTagger
+from .fastqparser import Single, Pair
+from .exceptions import ScataFileError, ScataReadsError
+
+
+
+
+class RawReads:
+    def __init__(self, fasta_file, qual_file=None):
+        fasta = open(fasta_file, "rt")
+        self.qual_present = True
+        if qual_file:
+            try:
+                qual = open(qual_file, "rt")
+                self.qual = QualFile(qual)
+            except IOError:
+                self.qual_present = False
+        else:
+            self.qual_present = False
+        self.fasta = SeqIO.parse(fasta,"fasta")
+
+    def __iter__ (self):
+        return self
+
+    def __next__(self):
+        seq_record = next(self.fasta)
+        qual = None
+        if self.qual_present:
+            qual = next(self.qual)
+            if seq_record.id != qual.name:
+                raise ScataFileError("id_mismatch", "Fasta and Qual ID missmatch")
+
+            if len(seq_record.seq) != len(qual.quals):
+                raise ScataFileError("length_mismatch", "Length of sequence and quality mismatch: " + seq_record.id + " " + qual.name)
+        return QualSeq(seq_record, qual)
+
+
+
+
+
+
+class Reads:
+    def __init__(self, file1, file2,
+                 file_type = "fastq", 
+                 mean_min=20, min_qual=20, 
+                 filtering="ampq",
+                 amplicon=None):
+        self.mean_min = int(mean_min)
+        self.min_qual = int(min_qual)
+        self.stats = dict(count = 0,
+                          skipped = 0,
+                          too_short = 0,
+                          low_mean = 0,
+                          low_min_quality = 0)
+        self.filtering = filtering
+
+        if amplicon:
+            self.min_length = amplicon.min_length
+            self.max_length = amplicon.max_length
+
+            self.detagger = SeqDeTagger(amplicon.five_prime_primer.sequence,
+                                        amplicon.five_prime_primer.mismatches,
+                                        amplicon.three_prime_primer.sequence,
+                                        amplicon.three_prime_primer.mismatches,
+                                        amplicon.five_prime_tag.tags if amplicon.five_prime_tag else None,
+                                        amplicon.three_prime_tag.tags if amplicon.three_prime_tag else None)
+        else:
+            self.detagger = None
+            self.min_length = 0
+            self.max_length = 100000 # Arbitrary....
+
+
+
+        if file_type == "fastq":
+            self.rawreads = Single(file1)
+        elif file_type == "fastq":
+            self.rawreads = Pair(file1, file2)
+        elif file_type == "fasta":
+            self.rawreads = RawReads(file1)
+        else:
+            self.rawreads = RawReads(file1, file2)
+
+    def __iter__ (self):
+        return self
+
+    def __next__ (self):
+
+        qualseq = next(self.rawreads)
+        
+        if self.filtering == "fs":
+            if self.detagger:
+                return self.detagger.detag_seq(qualseq)
+            else:
+                return qualseq
+
+        if not qualseq.qual:
+            raise ScataFileError("missing_qual", "Selected filtering method requires quality data")
+        
+        qs = None
+        if self.filtering == "fsq":
+            qs = filter_full(qualseq, self.min_length,
+                               self.mean_min, self.min_qual)
+            if self.detagger:
+                return self.detagger.detag_seq(qs)
+            else:
+                return qs
+
+        elif self.filtering == "hqr":
+            qs = filter_hqr(qualseq, self.min_length, 
+                                  self.mean_min, self.min_qual)
+            if self.detagger:
+                return self.detagger.detag_seq(qs)
+            else:
+                return qs
+        elif self.filtering == "ampq":
+            if not self.detagger:
+                raise ScataFileError("no_amplicon", "Amplicon quality reuires a defined amplicon")
+            detagged = self.detagger.detag_seq(qualseq)
+            return filter_full(detagged, self.min_length,
+                               self.mean_min, self.min_qual)        
+
+
+
+def foo(r):
+    res = dict()
+    while True:
+        res["cnt"] = res.get("cnt",0) + 1
+        if res["cnt"] > 10000:
+            return res
+        try:
+            t=next(r)
+            res["ok"] = res.get("ok",0) + 1
+        except ScataReadsError as e:
+            res[e.error] = res.get(e.error, 0) + 1
+
+    return res
