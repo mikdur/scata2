@@ -11,13 +11,7 @@ class Single:
     
     def __init__(self, fastq_file):
         # Try to open as gzipped file, if that fails, open as plain fasta
-        try:
-            handle = gzip.open(fastq_file, "rt")
-            next(handle) # This fails if not a gzip file, goes into the exception
-            handle = gzip.open(fastq_file, "rt")
-            self.fastq = SeqIO.parse(handle, "fastq")
-        except IOError:
-            self.fastq = SeqIO.parse(fastq_file, "fastq")
+        self.fastq = SeqIO.parse(fastq_file, "fastq")
         self.qual_present=True
         
 

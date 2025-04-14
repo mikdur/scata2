@@ -147,7 +147,7 @@ STORAGES = {
     "staticfiles": {
         "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
     },
-    
+
     "scata_files": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
         "OPTIONS": {
@@ -167,7 +167,8 @@ Q_CLUSTER = {
     'name': 'scata2',
     'workers': 8,
     'recycle': 100,
-    'timeout': 60,
+    'timeout': 3600,
+    'retry': 3780,
     'compress': True,
     'save_limit': 250,
     'queue_limit': 500,

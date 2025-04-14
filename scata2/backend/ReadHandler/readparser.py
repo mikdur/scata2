@@ -49,7 +49,8 @@ class Reads:
                  file_type = "fastq", 
                  mean_min=20, min_qual=20, 
                  filtering="ampq",
-                 amplicon=None):
+                 amplicon=None,
+                 kmer=7, hsp=5, hsp_min=10):
         self.mean_min = int(mean_min)
         self.min_qual = int(min_qual)
         self.stats = dict(count = 0,
@@ -68,7 +69,8 @@ class Reads:
                                         amplicon.three_prime_primer.sequence,
                                         amplicon.three_prime_primer.mismatches,
                                         amplicon.five_prime_tag.tags if amplicon.five_prime_tag else None,
-                                        amplicon.three_prime_tag.tags if amplicon.three_prime_tag else None)
+                                        amplicon.three_prime_tag.tags if amplicon.three_prime_tag else None,
+                                        keep_primer=True)
         else:
             self.detagger = None
             self.min_length = 0
@@ -79,7 +81,8 @@ class Reads:
         if file_type == "fastq":
             self.rawreads = Single(file1)
         elif file_type == "fastq":
-            self.rawreads = Pair(file1, file2)
+            self.rawreads = Pair(file1, file2,
+                                 kmer=kmer, hsp=hsp, min=hsp_min)
         elif file_type == "fasta":
             self.rawreads = RawReads(file1)
         else:
@@ -125,17 +128,3 @@ class Reads:
                                self.mean_min, self.min_qual)        
 
 
-
-def foo(r):
-    res = dict()
-    while True:
-        res["cnt"] = res.get("cnt",0) + 1
-        if res["cnt"] > 10000:
-            return res
-        try:
-            t=next(r)
-            res["ok"] = res.get("ok",0) + 1
-        except ScataReadsError as e:
-            res[e.error] = res.get(e.error, 0) + 1
-
-    return res

@@ -177,8 +177,15 @@ class DataSetListView(ListOwnedView):
 class DataSetCreateView(FilteredCreateView):
     model = ScataDataset
     fields = ["name", "description", "amplicon", "min_qual", "mean_qual",
-              "kmer_size", "kmer_hsp_count", "kmer_shared",
-              "filter_method", "file1", "file2"]
+              "filter_method", "file_types", "file1", "file2",
+              "kmer_size", "kmer_hsp_count", "kmer_shared"]
+    
+    def form_valid(self, form):
+        # Call the parent's form_valid() to save the form
+        response = super().form_valid(form)
+        task_id = q2.async_task(scata2.backend.check_dataset, self.object.pk,
+                      task_name="dataset pk={id}".format(id=self.object.pk))
+        return response
     
 class DataSetDeleteView(DeleteToTrashView):
     model = ScataDataset

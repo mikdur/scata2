@@ -52,7 +52,7 @@ def parse_tagset(pk):
             tag_len = len(s[1])
 
         if len(s[1]) != tag_len:
-            errors += "Tag on line {line} is not {bp} bp, as tags on previous lines\n".format(
+            errors += "Tag on line {line} is not {bp} bp, as tags on previous line(s)\n".format(
                 line = line_no, bp=tag_len)
             err_cnt += 1
             continue

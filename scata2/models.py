@@ -3,10 +3,25 @@ from django.urls import reverse, reverse_lazy
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
 from picklefield.fields import PickledObjectField
-from .storages import get_file_storage
+from .storages import get_file_storage, get_work_storage
 
 
 import os.path
+
+# PickledFileFiled - store large pickleable data
+# structures in file. 
+
+class PickledFileField(models.FileField):
+    def dump(self, name, data):
+        gz_data = BytesIO()
+        with gzip.open(gz_data,mode="wb") as gz:
+            pickle.dump(data,gz)
+        gz_data.seek(0)
+        self.save(name, File(gz_data))
+
+    def load(self):
+        return pickle.load(gzip.open(self.open(mode="rb"),mode="rb"))
+    
 
 # Abstract base class for Scata models where the user interacts
 # with the models
@@ -65,7 +80,7 @@ class ScataFile(ScataModel):
 # Scata Primer class. Used by ScataDataset 
 
 class ScataPrimer(ScataModel):
-    sequence = models.CharField("Primer sequence", max_length=100)
+    sequence = models.CharField("Primer sequence (IUPAC ambiguity codes are accepted)", max_length=100)
     mismatches = models.DecimalField("Max missmatches", 
                                      max_digits=2, decimal_places=0)
     description = models.TextField(max_length="1000")
@@ -121,7 +136,7 @@ class ScataTagSet(ScataModel):
 class ScataAmplicon(ScataModel):
     description = models.TextField("Description", max_length=300,
                                    blank=True, null=True)
-    five_prime_primer = models.ForeignKey(ScataPrimer, null=True, blank=True,
+    five_prime_primer = models.ForeignKey(ScataPrimer, null=False, blank=False,
                                           on_delete=models.PROTECT, 
                                           verbose_name="5' primer",
                                           related_name="five_prime_primer")
@@ -129,7 +144,7 @@ class ScataAmplicon(ScataModel):
                                        on_delete=models.PROTECT,
                                        verbose_name="5' tagset (not used when clustering)",
                                        related_name="five_prime_tagset")
-    three_prime_primer = models.ForeignKey(ScataPrimer, null=True,  blank=True,
+    three_prime_primer = models.ForeignKey(ScataPrimer, null=False,  blank=False,
                                            on_delete=models.PROTECT,
                                            verbose_name="3' primer",
                                            related_name="three_prime_primer")
@@ -194,7 +209,7 @@ class ScataReferenceSet(ScataModel):
         return reverse("referenceset-list")
     
 class ScataDataset(ScataModel):
-    amplicon = models.ForeignKey(ScataAmplicon, null=False, blank=False,
+    amplicon = models.ForeignKey(ScataAmplicon, null=True, blank=True,
                                  on_delete=models.PROTECT,
                                  verbose_name="Amplicon for filtering") 
     mean_qual = models.IntegerField("Minimum mean read quality", blank=False, 
@@ -218,11 +233,18 @@ class ScataDataset(ScataModel):
                                     validators=[MinValueValidator(5, "Min is 5"),
                                                MaxValueValidator(20, "Max is 20")])
     filter_method = models.CharField("Filtering type", blank=False, null=False,
-                                     max_length=5, choices={
+                                     default="ampq", max_length=6, choices={
                                          "fsq":"Full sequence, quality screen",
                                          "fs":"Full sequence, NO quality filtering",
-                                         "hqr":"Extract High Quality Region",
-                                         "ampq":"Amplicon quality"})
+                                         # "hqr":"Extract High Quality Region",
+                                         "ampq":"Amplicon quality",
+                                         "amp":"Only amplicon extraction"})
+    file_types = models.CharField("File types", blank=False, null=False,
+                                     default="fastq", max_length=6, choices={
+                                         "fastq":"First file FASTQ",
+                                         "fastp":"Paired End FASTQ (two files with mates)",
+                                         "fasta":"First file FASTA",
+                                         "fastaq":"First file FASTA, second file quality data"})
     file1 = models.ForeignKey(ScataFile, null=False, blank=False,
                               verbose_name="File 1",
                               on_delete=models.PROTECT,
@@ -233,8 +255,24 @@ class ScataDataset(ScataModel):
                               related_name="dataset_file2")
     
     is_valid = models.BooleanField(default=False, editable=False)
-    validated = models.BooleanField(default=False, editable=False)
+    validated = models.BooleanField(default=False, editable=True)
+    progress = models.CharField(default="", null=False, max_length=100)
     seq_count = models.IntegerField(editable=False, default=0)
+    seq_total = models.IntegerField(editable=False, default=0)
+    process_time = models.FloatField(editable=False, default=0.0)
+
+
+    tags = models.FileField("Tag info", null=True, blank=True,
+                            #editable=False,
+                            upload_to="data/tags",
+                            storage = get_work_storage)
+    
+    sequences = models.FileField("Sequences", null=True, blank=True,
+                            #editable=False,
+                            upload_to="data/seqs",
+                            storage = get_work_storage)
+    
+
 
     
     def __str__(self):
@@ -258,6 +296,11 @@ class ScataDataset(ScataModel):
     def get_absolute_url(self):
         return reverse("dataset-list")
     
+class ScataErrorType(models.Model):
+    dataset = models.ForeignKey(ScataDataset, on_delete=models.CASCADE)
+    error = models.CharField(max_length=10)
+    message = models.CharField(max_length=100)
+    count = models.IntegerField()
 
 class ScataJob(ScataModel):
     # Job settings

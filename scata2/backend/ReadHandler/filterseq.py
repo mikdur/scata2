@@ -147,12 +147,12 @@ complement_trans_table = { 'A' : base_T,
 
 class SeqDeTagger:
     # Translation of bases for primer identification.
-    def __init__(self, p5, p5s, p3, p3s, t5, t3):
+    def __init__(self, p5, p5s, p3, p3s, t5, t3, keep_primer=False):
         self.p5s = p5s
         self.p3s = p3s
         self.t5 = t5
         self.t3 = t3
-        #self.min_len = min_len
+        self.keep_primer = keep_primer
 
         # Translate primer sequence
         self.p5 = [trans_table[x] for x in p5.upper() if x in trans_table]
@@ -172,9 +172,11 @@ class SeqDeTagger:
         seq = seq_record.seq
         seq_str = str(seq)
         seq_list = [trans_table[x] if not x == 'N' else 0 for x in str(seq).upper() if x in trans_table]
+        q=qualseq.get_qual()        
+
         p5_pos = -1
         accepted_t3 = set()
-        if len(self.p5):
+        if self.p5:
             p5_len = len(self.p5)
             for x in range(0, min(len(seq_str), 20000 + p5_len ) - p5_len):
                 m = 0
@@ -188,6 +190,7 @@ class SeqDeTagger:
             if p5_pos < 0:
                 result.reversed = True
                 seq = seq.reverse_complement()
+                q.quals.reverse()
                 seq_str = str(seq)
                 seq_list = [trans_table[x] if not x == 'N' else 0 for x in str(seq).upper() if x in trans_table]
 
@@ -201,6 +204,7 @@ class SeqDeTagger:
                         break
             if p5_pos < 0:
                 raise ScataReadsError("no_primer5", "No 5' primer found")
+            
         else:
             p5_pos=0
         
@@ -215,11 +219,13 @@ class SeqDeTagger:
         else:
             result.tag = ""
         
+        if not self.keep_primer:
+            p5_pos += p5_len
 
         p3_pos = -1
         p3_matches = [ ]
 
-        if len(self.p3):
+        if self.p3:
             p3_len = len(self.p3)
             for x in range(len(seq) - p3_len - 1, p5_pos, -1):
                 m=0
@@ -245,18 +251,22 @@ class SeqDeTagger:
             else:
                 result.tag += ""
 
+                if self.keep_primer:
+                    p3_pos += p3_len
+
             seq_record.seq = seq[(p5_pos + len(self.p5)):p3_pos]
             result.seq_record = seq_record
+            if q:
+                q.quals = q.quals[(p5_pos + len(self.p5)):p3_pos]
+                result.qual = q
+
         else:
             seq_record.seq = seq[(p5_pos + len(self.p5)):]
             result.seq_record = seq_record
-
-        q=qualseq.get_qual()
-        if q:
-            if p3_pos:
-                q.quals = q.quals[(p5_pos + len(self.p5)):p3_pos]
-            else:
+            if q:
                 q.quals = q.quals[(p5_pos + len(self.p5)):]
-            result.qual = q
+                result.qual = q
+
+            
         return result
 
