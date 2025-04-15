@@ -16,7 +16,6 @@ def check_file(pk):
     sf.file_size = sf.file.size / (1024 * 1024)
     sf.sha256 = hash.hexdigest()
     sf.save()
-    print(sf.sha256, file=sys.stderr)
     return True
 
 
