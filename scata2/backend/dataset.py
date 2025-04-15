@@ -1,6 +1,8 @@
 import gzip,pickle
 from io import BytesIO
 import time
+from django.core.files import File
+
 
 
 
@@ -50,7 +52,7 @@ def check_dataset(pk):
 
     total_reads = 0
     good_reads = 0
-    
+
     filter_results = dict()
     while True:
         try:
@@ -104,13 +106,15 @@ def check_dataset(pk):
         with gzip.open(tag_file, mode="wb") as gz:
             pickle.dump(tags, gz)
         tag_file.seek(0)
-        dataset.tags.save("tags_{id}".format(id=pk), tag_file)
+        name = "tags_{id}".format(id=pk)
+        dataset.tags.save(name, File(tag_file, name=name))
 
     with BytesIO() as seq_file:
         with gzip.open(seq_file, "wb") as gz:
             pickle.dump(seqs, gz)
         seq_file.seek(0)
-        dataset.sequences.save("seqs_{id}".format(id=pk), seq_file)
+        name = "seqs_{id}".format(id=pk)
+        dataset.sequences.save(name, File(seq_file, name=name))
     
 
 

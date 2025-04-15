@@ -15,3 +15,6 @@ class ScataFileError(Exception):
     Attributes:
        error - short error code
        message - Human readable error message """
+    def __init__(self, error, message="Unknown error"):
+        self.error = error
+        self.message = message

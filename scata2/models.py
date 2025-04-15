@@ -284,7 +284,7 @@ class ScataDataset(ScataModel):
             status = " (Failed, pending deletion)"
 
         if self.validated:
-            size = " ({n} sequences)".format(n=len(self.tags))
+            size = " ({n} good sequences)".format(n=self.seq_count)
         else:
             size = ""
 
