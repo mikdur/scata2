@@ -161,6 +161,13 @@ class ReferenceSetListView(ListOwnedView):
 class ReferenceSetCreateView(FilteredCreateView):
     model = ScataReferenceSet
     fields = ["name", "description", "refseq_file", "amplicon"]
+
+    def form_valid(self, form):
+        # Call the parent's form_valid() to save the form
+        response = super().form_valid(form)
+        task_id = q2.async_task(scata2.backend.check_refset, self.object.pk,
+                      task_name="refset pk={id}".format(id=self.object.pk))
+        return response
     
 class ReferenceSetDeleteView(DeleteToTrashView):
     model = ScataReferenceSet

@@ -11,18 +11,16 @@ from .exceptions import ScataFileError, ScataReadsError
 
 
 class RawReads:
-    def __init__(self, fasta_file, qual_file=None):
-        fasta = open(fasta_file, "rt")
+    def __init__(self, fasta, qual_file=None):
         self.qual_present = True
         if qual_file:
             try:
-                qual = open(qual_file, "rt")
-                self.qual = QualFile(qual)
+                self.qual = QualFile(qual_file)
             except IOError:
-                self.qual_present = False
+                ScataFileError("bad_qualfile", "Bad .qual file")
         else:
             self.qual_present = False
-        self.fasta = SeqIO.parse(fasta,"fasta")
+        self.fasta = SeqIO.parse(fasta, "fasta")
 
     def __iter__ (self):
         return self
@@ -51,7 +49,8 @@ class Reads:
                  filtering="ampq",
                  amplicon=None,
                  kmer=7, hsp=5, hsp_min=10,
-                 keep_primer=True):
+                 keep_primer=True,
+                 ignore_tags = False):
         self.mean_min = int(mean_min)
         self.min_qual = int(min_qual)
         self.stats = dict(count = 0,
@@ -65,13 +64,23 @@ class Reads:
             self.min_length = amplicon.min_length
             self.max_length = amplicon.max_length
 
-            self.detagger = SeqDeTagger(amplicon.five_prime_primer.sequence,
+            if ignore_tags:
+                self.detagger = SeqDeTagger(amplicon.five_prime_primer.sequence,
+                                        amplicon.five_prime_primer.mismatches,
+                                        amplicon.three_prime_primer.sequence,
+                                        amplicon.three_prime_primer.mismatches,
+                                        None,
+                                        None,
+                                        keep_primer=keep_primer)
+            else:
+                self.detagger = SeqDeTagger(amplicon.five_prime_primer.sequence,
                                         amplicon.five_prime_primer.mismatches,
                                         amplicon.three_prime_primer.sequence,
                                         amplicon.three_prime_primer.mismatches,
                                         amplicon.five_prime_tag.tags if amplicon.five_prime_tag else None,
                                         amplicon.three_prime_tag.tags if amplicon.three_prime_tag else None,
                                         keep_primer=keep_primer)
+    
         else:
             self.detagger = None
             self.min_length = 0

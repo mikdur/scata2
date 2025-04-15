@@ -190,7 +190,8 @@ class SeqDeTagger:
             if p5_pos < 0:
                 result.reversed = True
                 seq = seq.reverse_complement()
-                q.quals.reverse()
+                if q:
+                    q.quals.reverse()
                 seq_str = str(seq)
                 seq_list = [trans_table[x] if not x == 'N' else 0 for x in str(seq).upper() if x in trans_table]
 
@@ -208,7 +209,7 @@ class SeqDeTagger:
         else:
             p5_pos=0
         
-        if len(self.t5):
+        if self.t5:
             tag_len = len(next(iter(self.t5)))
             tag_seq = seq_str[(p5_pos - tag_len):p5_pos]
             try:
@@ -238,7 +239,7 @@ class SeqDeTagger:
             if p3_pos < 0:
                 raise ScataReadsError("no_primer3", "No 3' primer found")
     
-            if len(self.t3):
+            if self.t3:
                 tag_len = len(next(iter(self.t3)))
                 tag_seq = seq_str[(p3_pos + len(self.p3)):(p3_pos + len(self.p3) + tag_len)]
                 tag_seq = str(Seq(tag_seq).reverse_complement())

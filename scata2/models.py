@@ -185,7 +185,14 @@ class ScataReferenceSet(ScataModel):
     is_valid = models.BooleanField(default=False, editable=False)
     validated = models.BooleanField(default=False, editable=False)
     refseq = models.FileField(editable=False, null=True)
+    sequences = models.FileField("Sequences", null=True, blank=True,
+                            editable=False,
+                            upload_to="data/seqs",
+                            storage = get_work_storage)
+    progress = models.CharField(default="", null=False, max_length=100)
     seq_count = models.IntegerField(editable=False, default=0)
+    seq_total = models.IntegerField(editable=False, default=0)
+    process_time = models.FloatField(editable=False, default=0.0)
 
     def __str__(self):
         if self.is_valid and self.validated:
@@ -196,7 +203,7 @@ class ScataReferenceSet(ScataModel):
             status = " (Failed, pending deletion)"
 
         if self.validated:
-            size = " ({n} sequences)".format(n=len(self.tags))
+            size = " ({n} sequences)".format(n=self.seq_count)
         else:
             size = ""
 
@@ -207,7 +214,13 @@ class ScataReferenceSet(ScataModel):
     
     def get_absolute_url(self):
         return reverse("referenceset-list")
-    
+
+class ScataRefsetErrorType(models.Model):
+    refset = models.ForeignKey(ScataReferenceSet, on_delete=models.CASCADE)
+    error = models.CharField(max_length=10)
+    message = models.CharField(max_length=100)
+    count = models.IntegerField()
+
 class ScataDataset(ScataModel):
     amplicon = models.ForeignKey(ScataAmplicon, null=True, blank=True,
                                  on_delete=models.PROTECT,
@@ -263,12 +276,12 @@ class ScataDataset(ScataModel):
 
 
     tags = models.FileField("Tag info", null=True, blank=True,
-                            #editable=False,
+                            editable=False,
                             upload_to="data/tags",
                             storage = get_work_storage)
     
     sequences = models.FileField("Sequences", null=True, blank=True,
-                            #editable=False,
+                            editable=False,
                             upload_to="data/seqs",
                             storage = get_work_storage)
     

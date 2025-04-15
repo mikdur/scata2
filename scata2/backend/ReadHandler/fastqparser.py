@@ -112,15 +112,8 @@ class Pair:
         self.kmer=kmer
         self.hsp = hsp
         self.min = min
-        try:
-            handle1 = gzip.open(fastq_1, "rt")
-            next(handle1) # This fails if not a gzip file, goes into the exception
-            handle1 = gzip.open(fastq_1, "rt")
-            self.fastq1 = SeqIO.parse(handle1, "fastq")
-            self.fastq2 = SeqIO.parse(gzip.open(fastq_2, "rt"), "fastq")
-        except IOError:
-            self.fastq1 = SeqIO.parse(fastq_1, "fastq")
-            self.fastq2 = SeqIO.parse(fastq_2, "fastq")
+        self.fastq1 = SeqIO.parse(fastq_1, "fastq")
+        self.fastq2 = SeqIO.parse(fastq_2, "fastq")
         self.qual_present = True
 
 
