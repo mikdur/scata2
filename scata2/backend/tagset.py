@@ -1,10 +1,12 @@
 from scata2.models import ScataTagSet
 import re
+from io import TextIOWrapper
+
 
 
 def parse_tagset(pk):
     tagset = ScataTagSet.objects.get(pk=pk)
-    file = tagset.tagset_file.file.open(mode="rt")
+    file = TextIOWrapper(tagset.tagset_file.file.open(mode="rb"))
 
     if not file:
         tagset.is_valid = False

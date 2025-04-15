@@ -1,6 +1,7 @@
 {% extends "scata2_base.html" %}
 
 {% block scata2_content %}
+Please note that datasets and reference sets has to be gzipped files.
 <form enctype="multipart/form-data" action="{% url "dataset-add" %}" method="post">
     {% csrf_token %}
 

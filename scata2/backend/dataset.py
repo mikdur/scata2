@@ -1,11 +1,7 @@
 import gzip,pickle
-from io import BytesIO
+from io import BytesIO, TextIOWrapper
 import time
 from django.core.files import File
-
-
-
-
 from scata2.models import ScataDataset, ScataErrorType
 from scata2.backend.ReadHandler import Reads, ScataReadsError, ScataFileError
 
