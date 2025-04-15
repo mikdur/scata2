@@ -45,12 +45,13 @@ class RawReads:
 
 
 class Reads:
-    def __init__(self, file1, file2,
+    def __init__(self, file1, file2=None,
                  file_type = "fastq", 
                  mean_min=20, min_qual=20, 
                  filtering="ampq",
                  amplicon=None,
-                 kmer=7, hsp=5, hsp_min=10):
+                 kmer=7, hsp=5, hsp_min=10,
+                 keep_primer=True):
         self.mean_min = int(mean_min)
         self.min_qual = int(min_qual)
         self.stats = dict(count = 0,
@@ -70,7 +71,7 @@ class Reads:
                                         amplicon.three_prime_primer.mismatches,
                                         amplicon.five_prime_tag.tags if amplicon.five_prime_tag else None,
                                         amplicon.three_prime_tag.tags if amplicon.three_prime_tag else None,
-                                        keep_primer=True)
+                                        keep_primer=keep_primer)
         else:
             self.detagger = None
             self.min_length = 0
