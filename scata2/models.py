@@ -317,6 +317,10 @@ class ScataErrorType(models.Model):
 
 class ScataJob(ScataModel):
     # Job settings
+    datasets = models.ManyToManyField(ScataDataset, verbose_name="Datasets", 
+                                      blank=False)
+    refsets = models.ManyToManyField(ScataReferenceSet, verbose_name="References",
+                                     blank=True)
     distance = models.FloatField("Clustering distance 0.001 < x < 0.10", null=False,
                                  blank=False, default=0.015,
                                  validators=[MinValueValidator(0.001, "Min 0.001"),

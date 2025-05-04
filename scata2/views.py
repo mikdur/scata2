@@ -207,7 +207,8 @@ class JobListView(ListOwnedView):
 
 class JobCreateView(FilteredCreateView):
     model = ScataJob
-    fields = ["name", "description", "distance", "min_alignment",
+    fields = ["name", "description", "datasets", "refsets", 
+              "distance", "min_alignment",
               "mismatch_pen", "open_pen", "extend_pen", "endgap_pen",
               "max_homopolymer", "downsample", "lowfreq", "repseqs"]
     
