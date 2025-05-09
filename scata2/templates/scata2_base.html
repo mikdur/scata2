@@ -1,8 +1,43 @@
 {% extends "base.html" %}
 
+{% block menu %}
+<div class="flex grow"></div>
+<nav class="place-content-end">
+    {% if user.is_authenticated %}
+    <ul class="flex flex-row flex-nowrap">
+        
+        <li class="text-sm hover:text-gray-500 text-black rounded-sm bg-stone-100 shadow-lg p-1 pb-2 mx-1"><a href="{% url "home" %}">Home</a></li>
+        <li class="text-sm hover:text-gray-500 text-black rounded-sm bg-stone-100 shadow-lg p-1 pb-2 mx-1"><a href="{% url "primer-list" %}">Primers</a></li>
+        <li class="text-sm hover:text-gray-500 text-black rounded-sm bg-stone-100 shadow-lg p-1 pb-2 mx-1"><a href="{% url "tagset-list" %}">Tagsets</a></li>
+        <li class="text-sm hover:text-gray-500 text-black rounded-sm bg-stone-100 shadow-lg p-1 pb-2 mx-1"><a href="{% url "amplicon-list" %}">Amplicons</a></li>
+        <li class="text-sm hover:text-gray-500 text-black rounded-sm bg-stone-100 shadow-lg p-1 pb-2 mx-1"><a href="{% url "referenceset-list" %}">Reference sets</a></li>
+        <li class="text-sm hover:text-gray-500 text-black rounded-sm bg-stone-100 shadow-lg p-1 pb-2 mx-1"><a href="{% url "dataset-list" %}">Datasets</a></li>
+        <li class="text-sm hover:text-gray-500 text-black rounded-sm bg-stone-100 shadow-lg p-1 pb-2 mx-1"><a href="{% url "job-list" %}">Jobs</a></li>
+        <li class="text-sm hover:text-gray-500 text-black rounded-sm bg-stone-100 shadow-lg p-1 pb-2 mx-1"><a href="{% url "file-list" %}">Files</a></li>
+        <li class="text-sm hover:text-gray-500 text-black rounded-sm bg-stone-100 shadow-lg p-1 pb-2 mx-1"><a href="{% url "scata2-index" %}">{{ user.username }}</a></li>
+        <li class="text-sm hover:text-gray-500 text-black rounded-sm bg-stone-100 shadow-lg p-1 pb-2 mx-1">
+            <form action="{% url 'logout' %}" method="post">
+            {% csrf_token %}
+            <button type="submit">Log Out</button>
+            </form>
+        </li>
+    </ul>
+    {% else %}
+    <ul class="flex flex-row">
+        <li class="text-sm hover:text-gray-500 text-black rounded-sm bg-stone-100 shadow-lg p-1 pb-2 mx-1"><a href="{% url "home" %}">Scata home</a></li>
+        <li class="text-sm hover:text-gray-500 text-black rounded-sm bg-stone-100 shadow-lg p-1 pb-2 mx-1"><a href="{% url 'login' %}">Log In</a></li>
+    </ul>
+    {% endif %}
+
+        
+    
+</nav>
+{% endblock %}
 {% block content %}
-<a href="{% url "scata2-index" %}">Scata home</a>
+<h1 class="font-semibold text-2xl font-serif pb-5">{% block title %}Title-placeholder{% endblock %}</h1>
+{% with button_class="bg-blue-500 rounded-sm text-white p-1" %}
 {% block scata2_content %}
 
 {% endblock %}
+{% endwith %}
 {% endblock %}

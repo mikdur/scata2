@@ -1,0 +1,10 @@
+biopython<2.0
+blessed
+Django>=5.2,<5.3
+django-picklefield
+django-q2
+psutil
+django-tailwind[reload]
+crispy-tailwind==1.0.3
+
+

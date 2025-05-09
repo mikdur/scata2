@@ -1,8 +1,9 @@
-from django.urls import path
+from django.urls import path, include
 
 from . import views
 
 urlpatterns = [
+    path("__reload__/", include("django_browser_reload.urls")),
     path("", views.index, name="scata2-index"),
     path("primers/", views.PrimerListView.as_view(), name="primer-list"),
     path("primers/add/", views.PrimerCreateView.as_view(), name="primer-add"),

@@ -1,7 +1,67 @@
-<form action="{% url 'logout' %}" method="post">
-    {% csrf_token %}
-    <button type="submit">Log Out</button>
-</form>
+{% load tailwind_tags %}
+{% load static %}
 
-{% block content %}
-{% endblock %}
+
+<!DOCTYPE html>
+<html lang="en"> 
+    <head>
+        {% tailwind_css %}
+        {% comment %}
+        <script src="{% static "js/alpine-cdn-intersect-3.13.8.min.js" %}" defer></script>
+        <script src="{% static "js/alpine-cdn-3.13.8.min.js" %}" defer></script>
+        {% endcomment %}
+        <meta charset="utf-8" />
+        <title>
+            {% block title %}
+             {% endblock %}
+        </title>
+
+		{% block extra_css %}
+        {# Override this in templates to add extra stylesheets #}
+        {% endblock %}
+    </head>
+
+	<body class="{% block body_class %}bg-stone-200{% endblock %}">
+        <div class="relative w-screen font-ysabeau">
+            <div class="fixed z-50 top-0 left-0 right-0 h-16
+                    flex flex-row">
+                <div class="flex grow"></div>
+                <div class="flex grow flex-row w-11/12 max-w-screen-lg
+                            pt-2 bg-stone-200">
+                    <div class="relative flex w-36 md:w-48">
+                         Logo
+                    </div>
+                    <div class="flex grow">
+                        {% block menu %}
+						{% endblock %}
+                    </div>
+					<div class=""><img src="{% static "img/scata77.png" %}"> </div>
+                </div>
+                <div class="flex grow"></div>
+            
+            </div>
+            <div class="relative z-20 top-20 flex flex-row min-h-svh">
+                <div class="flex grow"></div>
+                <div class="flex grow flex-col w-11/12 max-w-screen-lg  
+                         bg-stone-50">
+                    <div class="overflow-auto p-5 grow shadow-xl">
+                        
+                        {% block content %}
+                        {% lorem 200 w %}
+                        {% endblock %}
+                    </div>
+                    <div class="h-24 p-4 bg-stone-200"></div>
+                </div>
+                <div class="flex grow"></div>
+            </div>
+        </div>
+        {# Global javascript #}
+        {% comment %}
+        <script type="text/javascript" src="{% static 'js/scata.js' %}"></script>
+        {% endcomment %}
+        {% block extra_js %}
+        {# Override this in templates to add extra javascript #}
+        {% endblock %}
+    </body>
+</html>
+

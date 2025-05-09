@@ -1,0 +1,26 @@
+{% extends "scata2_base.html" %}
+
+{% block scata2_content %}
+
+
+    <table class="place-self-center table-auto w-10/12">
+        {% with cell_class="p-2" %}
+        <thead class="bg-stone-200">
+            <tr>
+                {% block table_head %}
+                {% endblock %}
+            </tr>
+        </thead>
+        {% endwith %}
+        <tbody>
+            {% with row_class="" row_odd="bg-stone-100" row_even="bg-stone-200" cell_class="p-2" %}
+                {% block table_body %}.{% endblock %}
+            {% endwith %}
+        </tbody>
+    </table>
+{% with link_class="p-2 rounded-lg"%} 
+{% block add_link %}
+
+{% endblock %}
+{% endwith %}
+{% endblock %}

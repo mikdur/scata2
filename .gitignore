@@ -1,3 +1,8 @@
+files
+.vscode
+django_cache/
+*.djcache
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

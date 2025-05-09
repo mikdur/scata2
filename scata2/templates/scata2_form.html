@@ -1,0 +1,15 @@
+{% extends "scata2_base.html" %}
+{% load tailwind_filters %}
+
+{% block title %}
+Add primer
+{% endblock %}
+{% block scata2_content %}
+<form action="{% block form_url %}{% url "primer-add" %}{% endblock %}" method="post">
+    {% csrf_token %}
+
+    {{ form|crispy }}
+    <input class="{{ button_class }}" type="submit" value="Submit">
+</form>
+
+{% endblock %}

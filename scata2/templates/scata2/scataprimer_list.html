@@ -1,11 +1,28 @@
-{% extends "scata2_base.html" %}
+{% extends "scata2_list.html" %}
 
-{% block scata2_content %}
-    <h2>Primers</h2>
-    <a href="{% url "primer-add" %}">Add primer</a>
-    <ul>
-        {% for primer in object_list %}
-            <li>{{ primer.name }} {{ primer.public }} <a href="{% url "primer-delete" primer.id %}">Delete</a></li>
-        {% endfor %}
-    </ul>
+{% block title %}Primers{% endblock %}
+
+{% block table_head %}
+<th class="{{ cell_class }}"> Name </th>
+<th> Sequence </th>
+<th> Mismatches </th>
+<th></th>
 {% endblock %}
+{% block table_body %}
+    {% for primer in object_list %}
+        <tr class="{{ row_class }} {% cycle  row_odd row_even %}">
+            <td class="{{ cell_class }}">
+                {{ primer.name }}
+                {% if primer.public %}(Public){% endif %}
+            </td>
+            <td class="{{ cell_class }}">{{ primer.sequence }}</td>
+            <td class="{{ cell_class }}">{{ primer.mismatches }}</td>
+            <td class="{{ cell_class }}"> 
+                {% if not primer.public %}
+                <a class="{{ button_class }}" href="{% url "primer-delete" primer.id %}">Delete</a>
+                {% endif %}
+            </td>
+        </tr>
+    {% endfor %}
+{% endblock %}
+{% block add_link %}<a class="{{ button_class }}" href="{% url "primer-add" %}">Add primer</a>{% endblock %}
