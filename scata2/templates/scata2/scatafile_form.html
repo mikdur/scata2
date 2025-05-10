@@ -1,10 +1,4 @@
-{% extends "scata2_base.html" %}
-
-{% block scata2_content %}
-<form enctype="multipart/form-data" action="{% url "file-add" %}" method="post">
-    {% csrf_token %}
-
-    {{ form }}
-    <input type="submit" value="Submit">
-</form>
-{% endblock %}
+{% extends "scata2_form.html" %}
+{% block title %}Upload file{% endblock %}
+{% block form_url %}{% url "file-add" %}{% endblock %}
+{% block form_enctype %} enctype="multipart/form-data" {% endblock %} 

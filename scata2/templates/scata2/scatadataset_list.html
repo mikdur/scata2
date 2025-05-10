@@ -1,11 +1,49 @@
-{% extends "scata2_base.html" %}
+{% extends "scata2_list.html" %}
 
-{% block scata2_content %}
-    <h2>Datasets</h2>
-    <a href="{% url "dataset-add" %}">Add dataset</a>
-    <ul>
-        {% for dataset in object_list %}
-            <li>{{ dataset.name }} <a href="{% url "dataset-delete" dataset.id %}">Delete</a></li>
-        {% endfor %}
-    </ul>
+{% block title %}Datasets{% endblock %}
+
+{% block table_head %}
+<th class="{{ cell_class }}"> Name </th>
+<th class="{{ cell_class }}"> Sequence count </th>
+<th class="{{ cell_class }}"> Status</th>
+<th class="{{ cell_class }}"> Progress </th>
+
+<th class="{{ cell_class }}">  </th>
+<th class="{{ cell_class }}">  </th>
 {% endblock %}
+{% block table_body %}
+    {% for dataset in object_list %}
+        <tr class="{{ row_class }} {% cycle  row_odd row_even %}">
+            <td class="{{ cell_class }}">
+                {{ dataset.name }}
+                {% if dataset.public %}(Public){% endif %}
+            </td>
+            <td class="{{ cell_class }}">{{ dataset.seq_count }}</td>
+            <td class="{{ cell_class }}">
+                {% if dataset.validated %}
+                    {% if dataset.is_valid %}
+                        Ready
+                    {% else %}
+                        Failed
+                    {% endif %}
+                {% else %}
+                    Pending
+                {% endif %}
+            </td>
+            <td class="{{ cell_class }}">{{ dataset.progress }}</td>
+            <td class="{{ cell_class }}"> 
+                {% if dataset.validated %}
+                    <a class="{{ button_class }}" href="{% url "dataset-detail" dataset.id %}">Details</a>
+                {% endif %}
+            </td>
+            <td class="{{ cell_class }}"> 
+                {% if not dataset.public %}
+                <a class="{{ button_class }}" href="{% url "dataset-delete" dataset.id %}">Delete</a>
+                {% endif %}
+            </td>
+
+        </tr>
+    {% endfor %}
+{% endblock %}
+{% block add_link %}<a class="{{ button_class }}" href="{% url "dataset-add" %}">Add dataset</a>{% endblock %}
+

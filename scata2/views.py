@@ -3,11 +3,12 @@ from django.urls import reverse_lazy
 from django.http import HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.views.generic import ListView
+from django.views.generic import ListView, DetailView
 from django.views.generic.edit import CreateView, DeleteView
 from django.db.models import Q
 from scata2.models import ScataFile, ScataPrimer, ScataTagSet, ScataAmplicon, \
-                          ScataReferenceSet, ScataDataset, ScataJob, ScataModel
+                          ScataReferenceSet, ScataRefsetErrorType, \
+                          ScataDataset, ScataErrorType, ScataJob, ScataModel
 import scata2.backend
 
 import django_q.tasks as q2
@@ -45,7 +46,6 @@ class DeleteToTrashView(LoginRequiredMixin,
                        UserPassesTestMixin,DeleteView):
     def test_func(self):
         o = self.get_object()
-        print("Doo", file=sys.stderr)
         return o.owner == self.request.user and not o.deleted
     
     def form_valid(self, form):
@@ -53,7 +53,12 @@ class DeleteToTrashView(LoginRequiredMixin,
         self.object.save()
         success_url = self.get_success_url()
         return HttpResponseRedirect(success_url)
-    
+
+class OwnedDetailView(LoginRequiredMixin, UserPassesTestMixin, 
+                      DetailView):
+    def test_func(self):
+        o = self.get_object()
+        return o.owner == self.request.user and not o.deleted
 
 # Root page
 @login_required
@@ -174,6 +179,18 @@ class ReferenceSetDeleteView(DeleteToTrashView):
     success_url = reverse_lazy("referenceset-list")
 
 
+class ReferenceSetDetailView(OwnedDetailView):
+    model = ScataReferenceSet
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['errors'] = ScataRefsetErrorType.objects.all().filter(refset=context['object'].pk)
+        print(context['errors'])
+        return context
+
+
+
+
 #################################
 #  Dataset views
 #################################
@@ -197,6 +214,16 @@ class DataSetCreateView(FilteredCreateView):
 class DataSetDeleteView(DeleteToTrashView):
     model = ScataDataset
     success_url = reverse_lazy("dataset-list")
+
+class DataSetDetailView(OwnedDetailView):
+    model = ScataDataset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['errors'] = ScataErrorType.objects.all().filter(dataset=context['object'].pk)
+        context['discarded'] = context['object'].seq_total - context['object'].seq_count
+        print(context['errors'])
+        return context
 
 #################################
 #  Job views

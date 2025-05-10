@@ -5,7 +5,7 @@
 Add primer
 {% endblock %}
 {% block scata2_content %}
-<form action="{% block form_url %}{% url "primer-add" %}{% endblock %}" method="post">
+<form {% block form_enctype %}{% endblock %} action="{% block form_url %}{% url "primer-add" %}{% endblock %}" method="post">
     {% csrf_token %}
 
     {{ form|crispy }}

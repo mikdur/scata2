@@ -1,10 +1,3 @@
-{% extends "scata2_base.html" %}
-
-{% block scata2_content %}
-<form action="{% url "amplicon-add" %}" method="post">
-    {% csrf_token %}
-
-    {{ form }}
-    <input type="submit" value="Submit">
-</form>
-{% endblock %}
+{% extends "scata2_form.html" %}
+{% block title %}Add Amplicon{% endblock %}
+{% block form_url %}{% url "amplicon-add" %}{% endblock %}

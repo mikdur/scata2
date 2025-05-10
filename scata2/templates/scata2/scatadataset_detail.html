@@ -1,0 +1,87 @@
+{% extends "scata2_base.html" %}
+{% block title %}Dataset set: {{ object.name }} - {{ object.create_date|date:"Y-m-d" }}{% endblock %}
+
+{% block scata2_content %}
+<div class="flex flex-wrap gap-8">
+{% if  object.description %}
+<div class="p-4 w-96">
+<h2 class="text-lg font-serif font-bold">Description</h2>
+<div class="prose">
+    {{ object.description }}
+</div>
+</div>
+{% endif %}
+<div class="p-4 w-96">
+<h2 class="pb-2 pt-4 text-lg font-serif font-bold">General</h2>
+<table class="table-auto min-w-96">
+    <tr>
+        <td class="font-semibold">Amplicon:</td>
+        <td class="text-right">{{ object.amplicon.name }}</td>
+    </tr>
+    <tr>
+        <td class="font-semibold">Accepted sequences:</td>
+        <td class="text-right font-mono">{{ object.seq_count }}</td>
+    </tr>
+    <tr>
+        <td class="font-semibold">Total sequences:</td>
+        <td class="text-right font-mono">{{ object.seq_total }}</td>
+    </tr>
+    <tr>
+        <td class="font-semibold">Discarded sequences:</td>
+        <td class="text-right font-mono">{{ discarded }}</td>
+    </tr>
+
+    <tr>
+        <td class="font-semibold">File 1:</td>
+        <td class="text-right font-mono">{{ object.file1.name }}</td>
+    </tr>
+    <tr>
+        <td class="font-semibold">File 2:</td>
+        <td class="text-right font-mono">{{ object.file2.name }}</td>
+    </tr>
+
+    <tr>
+        <td class="font-semibold">Process time:</td>
+        <td class="text-right font-mono">
+            {{object.process_time|floatformat:"-2"}}s 
+        </td>
+    </tr>
+</table>
+</div>
+{% if errors %}
+<div class="p-4 w-96">
+
+<h2 class="pb-2 pt-4 text-lg font-serif font-bold">Errors</h2>
+<table class="table-auto min-w-96">
+    {% for error in errors %}
+    <tr>
+        <td class="font-semibold">{{ error.message }}:</td>
+        <td class="text-right font-mono">{{ error.count }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% endif %}
+</div>
+<div class="p-4 w-96">
+<h2 class="pb-2 pt-2 text-lg font-serif font-bold">Settings</h2>
+<table class="table-auto min-w-96">
+    <tr>
+        <td class="font-semibold">Filter method:</td>
+        <td class="text-right font-mono">{{ object.filter_method }}</td>
+    </tr>
+    <tr>
+        <td class="font-semibold">Mininimum quality:</td>
+        <td class="text-right">{{ object.min_qual }}</td>
+    </tr>
+    <tr>
+        <td class="font-semibold">Mininimum mean quality:</td>
+        <td class="text-right">{{ object.mean_qual }}</td>
+    </tr>
+    <tr>
+        <td class="font-semibold">Overlap kmer size/hsp count/#shared</td>
+        <td class="text-right">{{ object.kmer_size }}/{{ object.kmer_hsp_count }}/{{ object.kmer_shared }}</td>
+    </tr> 
+</table>
+</div>
+</div>
+{% endblock %}

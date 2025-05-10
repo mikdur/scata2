@@ -63,11 +63,11 @@ def check_dataset(pk):
                 tags[read.tag]["cnt"] += 1
                 if read.reversed:
                     tags[read.tag]["rev"] += 1
-                #tags[read.tag]["reads"].append(read.seq_record.id)
+                tags[read.tag]["reads"].append(read.seq_record.id)
             else:
                 tags[read.tag] = {"cnt": 1,
                                   "rev": 1 if read.reversed else 0,
-                                  #"reads": [ read.seq_record.id ],
+                                  "reads": [ read.seq_record.id ],
                                   }
         
             seqs[read.seq_record.id]=read.seq_record.seq

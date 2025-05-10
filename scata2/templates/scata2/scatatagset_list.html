@@ -1,11 +1,27 @@
-{% extends "scata2_base.html" %}
+{% extends "scata2_list.html" %}
 
-{% block scata2_content %}
-    <h2>Primers</h2>
-    <a href="{% url "tagset-add" %}">Add tagset</a>
-    <ul>
-        {% for tagset in object_list %}
-            <li>{{ tagset.name }} <a href="{% url "tagset-delete" tagset.id %}">Delete</a></li>
-        {% endfor %}
-    </ul>
+{% block title %}Tagsets{% endblock %}
+
+{% block table_head %}
+<th class="{{ cell_class }}"> Name </th>
+<th class="{{ cell_class }}"> # tags </th>
+<th class="{{ cell_class }}">  </th>
 {% endblock %}
+{% block table_body %}
+    {% for tagset in object_list %}
+        <tr class="{{ row_class }} {% cycle  row_odd row_even %}">
+            <td class="{{ cell_class }}">
+                {{ tagset.name }}
+                {% if tagset.public %}(Public){% endif %}
+            </td>
+            <td class="{{ cell_class }}">{{ tagset.num_tags }}</td>
+            <td class="{{ cell_class }}"> 
+                {% if not tagset.public %}
+                <a class="{{ button_class }}" href="{% url "primer-delete" tagset.id %}">Delete</a>
+                {% endif %}
+            </td>
+        </tr>
+    {% endfor %}
+{% endblock %}
+{% block add_link %}<a class="{{ button_class }}" href="{% url "tagset-add"
+%}">Add tagset</a>{% endblock %}

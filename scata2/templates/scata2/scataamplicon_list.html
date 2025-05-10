@@ -1,11 +1,37 @@
-{% extends "scata2_base.html" %}
+{% extends "scata2_list.html" %}
 
-{% block scata2_content %}
-    <h2>Amplicons</h2>
-    <a href="{% url "amplicon-add" %}">Add amplicon</a>
-    <ul>
-        {% for amplicon in object_list %}
-            <li>{{ amplicon.name }} <a href="{% url "amplicon-delete" amplicon.id %}">Delete</a></li>
-        {% endfor %}
-    </ul>
+{% block title %}Amplicons{% endblock %}
+
+{% block table_head %}
+<th class="{{ cell_class }}"> Name </th>
+<th class="{{ cell_class }}"> Forward primer </th>
+<th class="{{ cell_class }}"> Forward tag </th>
+<th class="{{ cell_class }}"> Reverse primer</th>
+<th class="{{ cell_class }}"> Reverse tag </th>
+<th class="{{ cell_class }}"> Min length </th>
+<th class="{{ cell_class }}"> Max length </th>
+
+<th class="{{ cell_class }}">  </th>
 {% endblock %}
+{% block table_body %}
+    {% for amplicon in object_list %}
+        <tr class="{{ row_class }} {% cycle  row_odd row_even %}">
+            <td class="{{ cell_class }}">
+                {{ amplicon.name }}
+                {% if amplicon.public %}(Public){% endif %}
+            </td>
+            <td class="{{ cell_class }}">{{ amplicon.five_prime_primer.name }}</td>
+            <td class="{{ cell_class }}">{{ amplicon.five_prime_tag.name }}</td>
+            <td class="{{ cell_class }}">{{ amplicon.three_prime_primer.name }}</td>
+            <td class="{{ cell_class }}">{{ amplicon.three_prime_tag.name }}</td>
+            <td class="{{ cell_class }}">{{ amplicon.min_length }}</td>
+            <td class="{{ cell_class }}">{{ amplicon.max_length }}</td>
+            <td class="{{ cell_class }}"> 
+                {% if not amplicon.public %}
+                <a class="{{ button_class }}" href="{% url "amplicon-delete" amplicon.id %}">Delete</a>
+                {% endif %}
+            </td>
+        </tr>
+    {% endfor %}
+{% endblock %}
+{% block add_link %}<a class="{{ button_class }}" href="{% url "amplicon-add" %}">Add amplicon</a>{% endblock %}

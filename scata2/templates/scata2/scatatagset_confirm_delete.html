@@ -1,8 +1,2 @@
-{% extends "scata2_base.html" %}
-{% block scata2_content %}
-<form method="post">
-    {% csrf_token %}
-        <p>Are you sure you want to delete "{{ object }}"?</p>
-        <input type="submit" value="Confirm">
-</form>
-{% endblock %}
+{% extends "scata2_confirm.html" %}
+{% block title %}Delete tagset?{% endblock %}

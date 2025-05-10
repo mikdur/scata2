@@ -1,11 +1,40 @@
-{% extends "scata2_base.html" %}
+{% extends "scata2_list.html" %}
 
-{% block scata2_content %}
-    <h2>Files</h2>
-    <a href="{% url "file-add" %}">Add file</a>
-    <ul>
-        {% for file in object_list %}
-            <li>{{ file.name }} <a href="{% url "file-delete" file.id %}">Delete</a></li>
-        {% endfor %}
-    </ul>
+{% block title %}Tagsets{% endblock %}
+
+{% block table_head %}
+<th class="{{ cell_class }}"> Name </th>
+<th class="{{ cell_class }}"> Size </th>
+<th class="{{ cell_class }}"> SHA256 hash </th>
+
+<th class="{{ cell_class }}">  </th>
 {% endblock %}
+{% block table_body %}
+    {% for file in object_list %}
+        <tr class="{{ row_class }} {% cycle  row_odd row_even %}">
+            <td class="{{ cell_class }}">
+                {{ file.name }}
+                {% if file.public %}(Public){% endif %}
+            </td>
+            <td class="{{ cell_class }}">
+                {% if file.sha256 %} 
+                    {{ file.file_size }} MB
+                {% endif %} 
+            </td>
+            <td class="{{ cell_class }}">
+                {% if file.sha256 %} 
+                    {{ file.sha256 }}
+                {% else %}
+                    Pending
+                {% endif %}
+            </td>
+
+            <td class="{{ cell_class }}"> 
+                {% if not file.public %}
+                <a class="{{ button_class }}" href="{% url "file-delete" file.id %}">Delete</a>
+                {% endif %}
+            </td>
+        </tr>
+    {% endfor %}
+{% endblock %}
+{% block add_link %}<a class="{{ button_class }}" href="{% url "file-add" %}">Upload file</a>{% endblock %}

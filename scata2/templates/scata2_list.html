@@ -2,10 +2,10 @@
 
 {% block scata2_content %}
 
-
-    <table class="place-self-center table-auto w-10/12">
+<div class="p-2 bg-stone-100 w-11/12 rounded-lg shadow-xl">
+    <table class="place-self-center table-auto w-full">
         {% with cell_class="p-2" %}
-        <thead class="bg-stone-200">
+        <thead class="bg-stone-300 text-left">
             <tr>
                 {% block table_head %}
                 {% endblock %}
@@ -13,14 +13,17 @@
         </thead>
         {% endwith %}
         <tbody>
-            {% with row_class="" row_odd="bg-stone-100" row_even="bg-stone-200" cell_class="p-2" %}
+            {% with row_class="" row_odd="bg-stone-100" row_even="bg-stone-200" cell_class="p-2 text-left" %}
                 {% block table_body %}.{% endblock %}
             {% endwith %}
         </tbody>
     </table>
+</div>
+<div class="p-2 pt-6">
 {% with link_class="p-2 rounded-lg"%} 
 {% block add_link %}
 
 {% endblock %}
 {% endwith %}
+</div>
 {% endblock %}

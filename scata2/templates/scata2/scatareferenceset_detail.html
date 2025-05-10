@@ -1,0 +1,47 @@
+{% extends "scata2_base.html" %}
+{% block title %}Reference set: {{ object.name }} - {{ object.create_date|date:"Y-m-d" }}{% endblock %}
+
+{% block scata2_content %}
+{% if  object.description %}
+<h2 class="text-lg font-serif font-bold">Description</h2>
+<div class="prose">
+    {{ object.description }}
+</div>
+{% endif %}
+<h2 class="pb-2 pt-4 text-lg font-serif font-bold">Statistics</h2>
+<table class="table-auto min-w-96">
+    {% if object.public %}
+    <tr>
+        <td class="font-semibold">Number of sequences:</td>
+        <td class="text-right font-mono"> {{ object.seq_count }} </td>
+    </tr>
+    {% else %}
+    <tr>
+        <td class="font-semibold">Amplicon:</td>
+        <td class="text-right">{{ object.amplicon.name }}</td>
+    </tr>
+    <tr>
+        <td class="font-semibold">Accepted sequences:</td>
+        <td class="text-right font-mono">{{ object.seq_count }}</td>
+    </tr>
+    <tr>
+        <td class="font-semibold">Total sequences:</td>
+        <td class="text-right font-mono">{{ object.seq_total }}</td>
+    </tr>
+    
+    {% if errors %}
+
+    <tr class="">
+        <td class="pt-2 font-bold">Errors:</td>
+        <td> </td>
+    </tr>
+    {% for error in errors %}
+    <tr>
+        <td class="font-semibold">{{ error.message }}:</td>
+        <td class="text-right font-mono">{{ error.count }}</td>
+    </tr>
+    {% endfor %}
+    {% endif %}
+    {% endif %}
+</table>
+{% endblock %}
