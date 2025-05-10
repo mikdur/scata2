@@ -83,7 +83,6 @@ class ScataPrimer(ScataModel):
     sequence = models.CharField("Primer sequence (IUPAC ambiguity codes are accepted)", max_length=100)
     mismatches = models.DecimalField("Max missmatches", 
                                      max_digits=2, decimal_places=0)
-    description = models.TextField(max_length="1000")
 
 
 
@@ -134,8 +133,6 @@ class ScataTagSet(ScataModel):
     
 
 class ScataAmplicon(ScataModel):
-    description = models.TextField("Description", max_length=300,
-                                   blank=True, null=True)
     five_prime_primer = models.ForeignKey(ScataPrimer, null=False, blank=False,
                                           on_delete=models.PROTECT, 
                                           verbose_name="5' primer",
@@ -184,7 +181,6 @@ class ScataReferenceSet(ScataModel):
                                 on_delete=models.PROTECT)
     is_valid = models.BooleanField(default=False, editable=False)
     validated = models.BooleanField(default=False, editable=False)
-    refseq = models.FileField(editable=False, null=True)
     sequences = models.FileField("Sequences", null=True, blank=True,
                             editable=False,
                             upload_to="data/seqs",
