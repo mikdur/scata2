@@ -1,5 +1,5 @@
 import gzip,pickle
-from io import BytesIO, TextIOWrapper
+from io import BytesIO
 import time
 from django.core.files import File
 from scata2.models import ScataDataset, ScataErrorType
@@ -48,6 +48,7 @@ def check_dataset(pk):
 
     total_reads = 0
     good_reads = 0
+    rev_reads = 0
 
     filter_results = dict()
     while True:
@@ -58,6 +59,7 @@ def check_dataset(pk):
                 "accepted").format(g=good_reads, t=total_reads)
                 dataset.save()
             read = next(reads)
+            
             
             if read.tag in tags:
                 tags[read.tag]["cnt"] += 1
@@ -71,7 +73,9 @@ def check_dataset(pk):
                                   }
         
             seqs[read.seq_record.id]=read.seq_record.seq
-            good_reads += 1     
+            good_reads += 1 
+            if read.reversed:
+                rev_reads +=1
             
         except ScataReadsError as e:
             if e.error in filter_results:
@@ -116,6 +120,8 @@ def check_dataset(pk):
 
     dataset.seq_count = good_reads
     dataset.seq_total = total_reads
+    dataset.seq_rev = rev_reads
+    dataset.tag_count = len(tags)
     dataset.process_time = time.process_time() - start_time
     dataset.validated = True
     if good_reads > 0:

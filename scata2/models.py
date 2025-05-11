@@ -8,21 +8,6 @@ from .storages import get_file_storage, get_work_storage
 
 import os.path
 
-# PickledFileFiled - store large pickleable data
-# structures in file. 
-
-class PickledFileField(models.FileField):
-    def dump(self, name, data):
-        gz_data = BytesIO()
-        with gzip.open(gz_data,mode="wb") as gz:
-            pickle.dump(data,gz)
-        gz_data.seek(0)
-        self.save(name, File(gz_data))
-
-    def load(self):
-        return pickle.load(gzip.open(self.open(mode="rb"),mode="rb"))
-    
-
 # Abstract base class for Scata models where the user interacts
 # with the models
 
@@ -131,6 +116,7 @@ class ScataTagSet(ScataModel):
     def get_absolute_url(self):
         return reverse("tagset-list")
     
+# Scata Amplicon (primers, tags and length limits)
 
 class ScataAmplicon(ScataModel):
     five_prime_primer = models.ForeignKey(ScataPrimer, null=False, blank=False,
@@ -170,7 +156,10 @@ class ScataAmplicon(ScataModel):
 
     def get_absolute_url(self):
         return reverse("amplicon-list")
-    
+
+# Set of reference sequences  with error model
+# 
+ 
 class ScataReferenceSet(ScataModel):
     amplicon = models.ForeignKey(ScataAmplicon, null=True, blank=True,
                                  on_delete=models.PROTECT,
@@ -216,6 +205,10 @@ class ScataRefsetErrorType(models.Model):
     error = models.CharField(max_length=10)
     message = models.CharField(max_length=100)
     count = models.IntegerField()
+
+
+# Dataset model, with error model and per tag statistics model
+#
 
 class ScataDataset(ScataModel):
     amplicon = models.ForeignKey(ScataAmplicon, null=True, blank=True,
@@ -265,9 +258,13 @@ class ScataDataset(ScataModel):
     
     is_valid = models.BooleanField(default=False, editable=False)
     validated = models.BooleanField(default=False, editable=True)
+    has_stats = models.BooleanField(default=False, editable=False)
+
     progress = models.CharField(default="", null=False, max_length=100)
     seq_count = models.IntegerField(editable=False, default=0)
     seq_total = models.IntegerField(editable=False, default=0)
+    seq_rev = models.IntegerField(editable=False, default=0)
+    tag_count = models.IntegerField(editable=False, default=0)
     process_time = models.FloatField(editable=False, default=0.0)
 
 
@@ -310,6 +307,18 @@ class ScataErrorType(models.Model):
     error = models.CharField(max_length=10)
     message = models.CharField(max_length=100)
     count = models.IntegerField()
+
+class ScataTagStat(models.Model):
+    dataset = models.ForeignKey(ScataDataset, on_delete=models.CASCADE)
+    tag = models.CharField(max_length=200)
+    count = models.IntegerField()
+    mean_len = models.IntegerField()
+    min_len = models.IntegerField()
+    max_len = models.IntegerField()
+    gc = models.FloatField()
+    
+
+# Scata job
 
 class ScataJob(ScataModel):
     # Job settings

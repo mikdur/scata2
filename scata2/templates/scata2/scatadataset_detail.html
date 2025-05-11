@@ -4,31 +4,39 @@
 {% block scata2_content %}
 <div class="flex flex-wrap gap-8">
 {% if  object.description %}
-<div class="p-4 w-96">
+<div class="p-4 w-96 bg-stone-100 rounded-lg shadow-md">
 <h2 class="text-lg font-serif font-bold">Description</h2>
 <div class="prose">
     {{ object.description }}
 </div>
 </div>
 {% endif %}
-<div class="p-4 w-96">
+<div class="p-4 w-96 bg-stone-100 rounded-lg shadow-md">
 <h2 class="pb-2 pt-4 text-lg font-serif font-bold">General</h2>
-<table class="table-auto min-w-96">
+<table class="table-auto min-w-full">
     <tr>
         <td class="font-semibold">Amplicon:</td>
         <td class="text-right">{{ object.amplicon.name }}</td>
-    </tr>
-    <tr>
-        <td class="font-semibold">Accepted sequences:</td>
-        <td class="text-right font-mono">{{ object.seq_count }}</td>
     </tr>
     <tr>
         <td class="font-semibold">Total sequences:</td>
         <td class="text-right font-mono">{{ object.seq_total }}</td>
     </tr>
     <tr>
+        <td class="font-semibold">Accepted sequences:</td>
+        <td class="text-right font-mono">{{ object.seq_count }}</td>
+    </tr>
+    <tr>
+        <td class="font-semibold">Number of tags/samples:</td>
+        <td class="text-right font-mono">{{ object.tag_count }}</td>
+    </tr>
+    <tr>
         <td class="font-semibold">Discarded sequences:</td>
         <td class="text-right font-mono">{{ discarded }}</td>
+    </tr>
+    <tr>
+        <td class="font-semibold">Reverse complemented:</td>
+        <td class="text-right font-mono">{{ object.seq_rev }}</td>
     </tr>
 
     <tr>
@@ -49,10 +57,10 @@
 </table>
 </div>
 {% if errors %}
-<div class="p-4 w-96">
+<div class="p-4 w-96 bg-stone-100 rounded-lg shadow-md">
 
 <h2 class="pb-2 pt-4 text-lg font-serif font-bold">Errors</h2>
-<table class="table-auto min-w-96">
+<table class="table-auto min-w-full">
     {% for error in errors %}
     <tr>
         <td class="font-semibold">{{ error.message }}:</td>
@@ -62,9 +70,9 @@
 </table>
 {% endif %}
 </div>
-<div class="p-4 w-96">
+<div class="p-4 w-96 bg-stone-100 rounded-lg shadow-md">
 <h2 class="pb-2 pt-2 text-lg font-serif font-bold">Settings</h2>
-<table class="table-auto min-w-96">
+<table class="table-auto min-w-full">
     <tr>
         <td class="font-semibold">Filter method:</td>
         <td class="text-right font-mono">{{ object.filter_method }}</td>
