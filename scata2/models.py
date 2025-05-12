@@ -265,6 +265,9 @@ class ScataDataset(ScataModel):
     seq_total = models.IntegerField(editable=False, default=0)
     seq_rev = models.IntegerField(editable=False, default=0)
     tag_count = models.IntegerField(editable=False, default=0)
+    pc1_exp = models.FloatField(default=0)
+    pc2_exp = models.FloatField(default=0)
+    pc3_exp = models.FloatField(default=0)
     process_time = models.FloatField(editable=False, default=0.0)
 
 
@@ -312,11 +315,19 @@ class ScataTagStat(models.Model):
     dataset = models.ForeignKey(ScataDataset, on_delete=models.CASCADE)
     tag = models.CharField(max_length=200)
     count = models.IntegerField()
-    mean_len = models.IntegerField()
+    reversed = models.IntegerField()
+    mean_len = models.FloatField()
     min_len = models.IntegerField()
     max_len = models.IntegerField()
-    gc = models.FloatField()
-    
+    min_gc = models.FloatField()
+    mean_gc = models.FloatField()
+    max_gc = models.FloatField()
+    in_pca = models.BooleanField(default=False)
+    pc1 = models.FloatField(default=0)
+    pc2 = models.FloatField(default=0)
+    pc3 = models.FloatField(default=0)
+
+
 
 # Scata job
 

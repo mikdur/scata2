@@ -4,6 +4,9 @@ import time
 from django.core.files import File
 from scata2.models import ScataDataset, ScataErrorType
 from scata2.backend.ReadHandler import Reads, ScataReadsError, ScataFileError
+import scata2.backend
+import django_q.tasks as q2
+
 
 
 def check_dataset(pk):
@@ -72,7 +75,7 @@ def check_dataset(pk):
                                   "reads": [ read.seq_record.id ],
                                   }
         
-            seqs[read.seq_record.id]=read.seq_record.seq
+            seqs[read.seq_record.id]=read.seq_record.seq.upper()
             good_reads += 1 
             if read.reversed:
                 rev_reads +=1
@@ -136,4 +139,7 @@ def check_dataset(pk):
         err.count = e[1]['cnt']
         err.dataset = dataset
         err.save()
-    
+
+    q2.async_task(scata2.backend.dataset_stats, pk,
+                      task_name="dataset stats pk={id}".format(id=pk))    
+

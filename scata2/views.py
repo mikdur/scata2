@@ -8,7 +8,8 @@ from django.views.generic.edit import CreateView, DeleteView
 from django.db.models import Q
 from scata2.models import ScataFile, ScataPrimer, ScataTagSet, ScataAmplicon, \
                           ScataReferenceSet, ScataRefsetErrorType, \
-                          ScataDataset, ScataErrorType, ScataJob, ScataModel
+                          ScataDataset, ScataErrorType, ScataTagStat, \
+                          ScataJob, ScataModel
 import scata2.backend
 
 import django_q.tasks as q2
@@ -221,8 +222,8 @@ class DataSetDetailView(OwnedDetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['errors'] = ScataErrorType.objects.all().filter(dataset=context['object'].pk)
+        context['tags'] = ScataTagStat.objects.all().filter(dataset=context['object'].pk)
         context['discarded'] = context['object'].seq_total - context['object'].seq_count
-        print(context['errors'])
         return context
 
 #################################
