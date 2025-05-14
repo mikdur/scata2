@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.urls import reverse_lazy
 from django.http import HttpResponseRedirect
+from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import ListView, DetailView
@@ -60,6 +61,17 @@ class OwnedDetailView(LoginRequiredMixin, UserPassesTestMixin,
     def test_func(self):
         o = self.get_object()
         return o.owner == self.request.user and not o.deleted
+
+# Mixin to render JSON response
+class JSONResponseMixin:
+
+    def render_to_response(self, context, **response_kwargs):
+        print("foo")
+        return JsonResponse(self.get_data(context), **response_kwargs)
+
+    # To be overidden
+    def get_data(self, context):
+        return context
 
 # Root page
 @login_required
@@ -226,6 +238,11 @@ class DataSetDetailView(OwnedDetailView):
         context['discarded'] = context['object'].seq_total - context['object'].seq_count
         return context
 
+class DataSetTagsJSONView(JSONResponseMixin, DataSetDetailView):
+
+    def get_data(self, context):
+        return dict(data=list(context['tags'].filter(in_pca=True).order_by("count").values()))
+    
 #################################
 #  Job views
 #################################

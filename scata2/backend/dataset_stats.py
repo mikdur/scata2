@@ -105,6 +105,7 @@ def dataset_stats(pk):
     dataset.pc1_exp=float(pca.explained_variance_ratio_[0])
     dataset.pc2_exp=float(pca.explained_variance_ratio_[1])
     dataset.pc3_exp=float(pca.explained_variance_ratio_[2])
+    dataset.save()
     
     for i in range(len(pca_objects)):
         pca_objects[i].pc1=float(eigen_vectors[i,0])

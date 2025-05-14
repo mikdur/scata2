@@ -94,7 +94,15 @@
 {% if tags %}
 <div class="p-4 bg-stone-100 rounded-lg shadow-md w-11/12">
     <h2 class="pb-2 pt-2 text-lg font-serif font-bold">Sample size distribution</h2>
-    <div id="samplesize" class="min-w-full">
+    <div id="samplesize_plot" class="min-w-full">
+    </div>
+</div>
+
+<div  class="p-4 w-11/12 bg-stone-100 rounded-lg shadow-md">
+    <h2 class="pb-2 pt-2 text-lg font-serif font-bold">kmer-pca</h2>
+    <div id="pca1" class="min-w-full">
+    </div>
+    <div id="pca1_input" class="min-w-full">Test
     </div>
 </div>
 <div class="p-4 bg-stone-100 rounded-lg shadow-md w-11/12">
@@ -151,6 +159,69 @@ let table = new DataTable('#tags', {
     order: [[3, 'desc']]
 });
 </script>
+
+<script type="module">
+    
+    const data = await d3.json("./detail/pca-tags.json");
+
+    const plot = Plot.plot({
+        width: 900,
+        y: {
+          grid: true,
+          percent: false
+        },
+        x: {
+            label: null,
+            tick: null
+        },
+        marks: [
+          Plot.ruleY([0]),
+          Plot.barY(data.data, {x: "tag", y: "count", 
+                                fill: "mean_gc",
+                                tip: "x",
+                                sort: {x: "y", reverse: true}}),
+          Plot.axisX({ticks: []}),
+          Plot.ruleX([0])
+            
+        ],
+        color: {
+            scheme: "viridis",
+            type: "linear",
+            domain: [0.4, 0.6]
+
+        }
+      });
+
+    const div = document.querySelector("#samplesize_plot");
+    div.append(plot);
+    
+
+    const plot_pca1 = Plot.plot({
+        grid: true,
+        inset: 10,
+        x: {label: "PC1 {{ object.pc1_exp }}"},
+        y: {label: "PC2 {{ object.pc2_exp }}"},
+        marks: [
+          Plot.dot(data.data, {x: "pc1", y: "pc2",
+                               fill: "mean_gc",
+                               channels: {Tag:"tag", Count:"count"},
+                                tip: true})
+        ],
+        color: {
+            scheme: "viridis",
+            type: "linear",
+            domain: [0.4, 0.6]
+
+        }
+      });
+
+    const div_pca1 = document.querySelector("#pca1");
+    div_pca1.append(plot_pca1);
+
+    const slider = Inputs.range([0, 100], {label: "x"}); 
+    const div_pca1_in = document.querySelector("#pca1_input");
+    div_pca1_in.append(slider);
+    </script>
 
 
 {% endblock %}
