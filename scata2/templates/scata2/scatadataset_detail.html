@@ -99,10 +99,32 @@
 </div>
 
 <div  class="p-4 w-11/12 bg-stone-100 rounded-lg shadow-md">
-    <h2 class="pb-2 pt-2 text-lg font-serif font-bold">kmer-pca</h2>
-    <div id="pca1" class="min-w-full">
+    <h2 class="pb-2 pt-2 text-lg font-serif font-bold">Sample characteristics</h2>
+    <div x-data="" class="flex flex-col p-2">
+        <div class="flex ">
+            <label class="px-2">X-axis:</label>
+            <select x-on:input="set_axis1" class="px-2">
+                <option value="pc1" selected>PC1</option>
+                <option value="pc2">PC2</option>
+                <option value="pc3">PC3</option>
+                <option value="mean_gc">GC</option>
+                <option value="count">Sequence count</option>
+                <option value="mean_len">Mean length</option>
+            </select>
+        <div class="flex">
+            <label class="px-2">Y-axis:</label>
+            <select x-on:input="set_axis2" class="px-2">
+                <option value="pc1">PC1</option>
+                <option value="pc2" selected>PC2</option>
+                <option value="pc3">PC3</option>
+                <option value="mean_gc">GC</option>
+                <option value="count">Sequence count</option>
+                <option value="mean_len">Mean length</option>
+            </select>
+        </div>
+        </div>
     </div>
-    <div id="pca1_input" class="min-w-full">Test
+    <div id="pca1" class="min-w-full">
     </div>
 </div>
 <div class="p-4 bg-stone-100 rounded-lg shadow-md w-11/12">
@@ -160,9 +182,10 @@ let table = new DataTable('#tags', {
 });
 </script>
 
-<script type="module">
+
+<script type="module" >
     
-    const data = await d3.json("./detail/pca-tags.json");
+    const data = await d3.json("./detail/tags.json");
 
     const plot = Plot.plot({
         width: 900,
@@ -194,15 +217,33 @@ let table = new DataTable('#tags', {
 
     const div = document.querySelector("#samplesize_plot");
     div.append(plot);
-    
 
+    </script>
+    <script type="module">
+    const data = await d3.json("./detail/pca-tags.json");
+    let axis1 = "pc1";
+    function set_axis1(e){
+        axis1 = e.srcElement.value
+        draw_pca();
+    }
+
+    let axis2 = "pc2";
+    function set_axis2(e){
+        axis2 = e.srcElement.value
+        draw_pca();
+    }
+    window.set_axis1 = set_axis1;
+    window.set_axis2 = set_axis2;
+
+
+    function draw_pca() {
     const plot_pca1 = Plot.plot({
         grid: true,
         inset: 10,
-        x: {label: "PC1 {{ object.pc1_exp }}"},
-        y: {label: "PC2 {{ object.pc2_exp }}"},
+        x: {label: axis1 },
+        y: {label: axis2 },
         marks: [
-          Plot.dot(data.data, {x: "pc1", y: "pc2",
+          Plot.dot(data.data, {x: axis1, y: axis2,
                                fill: "mean_gc",
                                channels: {Tag:"tag", Count:"count"},
                                 tip: true})
@@ -215,12 +256,13 @@ let table = new DataTable('#tags', {
         }
       });
 
-    const div_pca1 = document.querySelector("#pca1");
-    div_pca1.append(plot_pca1);
 
-    const slider = Inputs.range([0, 100], {label: "x"}); 
-    const div_pca1_in = document.querySelector("#pca1_input");
-    div_pca1_in.append(slider);
+    const div_pca1 = document.querySelector("#pca1");
+
+    d3.select(div_pca1).selectChild("svg").remove();
+    div_pca1.append(plot_pca1);
+    } ;
+    draw_pca();
     </script>
 
 

@@ -241,8 +241,13 @@ class DataSetDetailView(OwnedDetailView):
 class DataSetTagsJSONView(JSONResponseMixin, DataSetDetailView):
 
     def get_data(self, context):
+        return dict(data=list(context['tags'].order_by("count").values()))
+
+class DataSetTagsPCAJSONView(JSONResponseMixin, DataSetDetailView):
+
+    def get_data(self, context):
         return dict(data=list(context['tags'].filter(in_pca=True).order_by("count").values()))
-    
+
 #################################
 #  Job views
 #################################
