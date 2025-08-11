@@ -1,6 +1,7 @@
 from Bio.Seq import Seq
 from .exceptions import ScataReadsError
 from .qualseq import QualSeq
+import numpy as np
 
 
 def filter_full(qualseq, min_length, mean_min, min_qual):
@@ -156,8 +157,10 @@ class SeqDeTagger:
 
         # Translate primer sequence
         self.p5 = [trans_table[x] for x in p5.upper() if x in trans_table]
+        self.p5_ar = np.array(self.p5)
         self.p3 = [complement_trans_table[x] for x in p3.upper() if x in complement_trans_table]
         self.p3.reverse()
+        self.p3_ar = np.array(self.p3)
         self.p5len = float(len(self.p5))
         self.p3len = float(len(self.p3))
 
@@ -171,7 +174,8 @@ class SeqDeTagger:
         seq_record = qualseq.get_seq()
         seq = seq_record.seq
         seq_str = str(seq)
-        seq_list = [trans_table[x] if not x == 'N' else 0 for x in str(seq).upper() if x in trans_table]
+        seq_ar = np.array([trans_table[x] if not x == 'N' else 0 for x in str(seq).upper() if x in trans_table])
+        
         q=qualseq.get_qual()        
 
         p5_pos = -1
@@ -179,10 +183,7 @@ class SeqDeTagger:
         if self.p5:
             p5_len = len(self.p5)
             for x in range(0, min(len(seq_str), 20000 + p5_len ) - p5_len):
-                m = 0
-                for i in range(p5_len):
-                    if seq_list[x + i] & self.p5[i]:
-                        m += 1
+                m = np.count_nonzero(np.bitwise_and(self.p5_ar,seq_ar[x:x+p5_len]))
                 if p5_len - m <= self.p5s:
                     p5_pos = x
                     break
@@ -193,13 +194,11 @@ class SeqDeTagger:
                 if q:
                     q.quals.reverse()
                 seq_str = str(seq)
-                seq_list = [trans_table[x] if not x == 'N' else 0 for x in str(seq).upper() if x in trans_table]
+                seq_ar = np.array([trans_table[x] if not x == 'N' else 0 for x in str(seq).upper() if x in trans_table])
 
                 for x in range(0, min(len(seq_str), 20000 + p5_len ) - p5_len):
-                    m = 0
-                    for i in range(p5_len):
-                        if seq_list[x + i] & self.p5[i]:
-                            m += 1
+                    m = np.count_nonzero(np.bitwise_and(self.p5_ar,seq_ar[x:x+p5_len]))
+
                     if p5_len - m <= self.p5s:
                         p5_pos = x
                         break
@@ -224,15 +223,12 @@ class SeqDeTagger:
             p5_pos += p5_len
 
         p3_pos = -1
-        p3_matches = [ ]
 
         if self.p3:
             p3_len = len(self.p3)
+            
             for x in range(len(seq) - p3_len - 1, p5_pos, -1):
-                m=0
-                for i in range(p3_len):
-                    if seq_list[x + i] & self.p3[i]:
-                        m += 1
+                m=np.count_nonzero(np.bitwise_and(self.p3_ar, seq_ar[x:x+p3_len]))
                 if p3_len - m <= self.p3s:
                     p3_pos = x
                     break
