@@ -8,6 +8,4 @@
   * the scope of this path.
   */
 @source "../../../**/*.{html,py,js}";
-@source "../../../../env/lib/python3.12/site-packages/crispy_tailwind/**/*.{html,py,js}";
-
-
+@source "../../../../env/lib/python3.12/site-packages/crispy_tailwind//**/*.{html,py,js}";
