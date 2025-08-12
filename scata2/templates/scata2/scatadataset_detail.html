@@ -121,7 +121,7 @@
 
 <div  class="p-4 w-11/12 bg-stone-100 rounded-lg shadow-md">
     <h2 class="pb-2 pt-2 text-lg font-serif font-bold">Sample characteristics</h2>
-    <div x-data="" class="flex flex-col p-2">
+    <div x-data="" class="flex flex-row p-2">
         <div class="flex ">
             <label class="px-2">X-axis:</label>
             <select x-on:input="set_axis1" class="px-2">
@@ -131,7 +131,9 @@
                 <option value="mean_gc">GC</option>
                 <option value="count">Sequence count</option>
                 <option value="mean_len">Mean length</option>
+                <option value="rev_freq">Proportion reversed</option>
             </select>
+        </div>
         <div class="flex">
             <label class="px-2">Y-axis:</label>
             <select x-on:input="set_axis2" class="px-2">
@@ -141,8 +143,20 @@
                 <option value="mean_gc">GC</option>
                 <option value="count">Sequence count</option>
                 <option value="mean_len">Mean length</option>
+                <option value="rev_freq">Proportion reversed</option>
             </select>
         </div>
+        <div class="flex">
+            <label class="px-2">Fill:</label>
+            <select x-on:input="set_fill" class="px-2">
+                <option value="pc1">PC1</option>
+                <option value="pc2" selected>PC2</option>
+                <option value="pc3">PC3</option>
+                <option value="mean_gc" selected >GC</option>
+                <option value="count">Sequence count</option>
+                <option value="mean_len">Mean length</option>
+                <option value="rev_freq">Proportion reversed</option>
+            </select>
         </div>
     </div>
     <div id="pca1" class="min-w-full">
@@ -231,7 +245,7 @@ let table = new DataTable('#tags', {
         color: {
             scheme: "viridis",
             type: "linear",
-            domain: [0.4, 0.6]
+            //domain: [0.4, 0.6]
 
         }
       });
@@ -242,6 +256,7 @@ let table = new DataTable('#tags', {
     </script>
     <script type="module">
     const data = await d3.json("./detail/pca-tags.json");
+
     let axis1 = "pc1";
     function set_axis1(e){
         axis1 = e.srcElement.value
@@ -253,8 +268,16 @@ let table = new DataTable('#tags', {
         axis2 = e.srcElement.value
         draw_pca();
     }
+
+    let fill = "mean_gc";
+    function set_fill(e){
+        fill = e.srcElement.value
+        draw_pca();
+    }
+
     window.set_axis1 = set_axis1;
     window.set_axis2 = set_axis2;
+    window.set_fill = set_fill;
 
 
     function draw_pca() {
@@ -265,14 +288,14 @@ let table = new DataTable('#tags', {
         y: {label: axis2 },
         marks: [
           Plot.dot(data.data, {x: axis1, y: axis2,
-                               fill: "mean_gc",
+                               fill: fill,
                                channels: {Tag:"tag", Count:"count"},
                                 tip: true})
         ],
         color: {
             scheme: "viridis",
             type: "linear",
-            domain: [0.4, 0.6]
+            //domain: [0.4, 0.6]
 
         }
       });

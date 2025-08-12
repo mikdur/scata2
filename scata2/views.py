@@ -282,7 +282,9 @@ class DataSetTagsJSONView(JSONResponseMixin, DataSetDetailView):
 class DataSetTagsPCAJSONView(JSONResponseMixin, DataSetDetailView):
 
     def get_data(self, context):
-        return dict(data=list(context['tags'].filter(in_pca=True).order_by("count").values()))
+        data = list(context['tags'].filter(in_pca=True).order_by("count").values())
+        data = [a | {"rev_freq":a['reversed'] / a['count']} for a in data]
+        return dict(data=data)
 
 #################################
 #  Job views
