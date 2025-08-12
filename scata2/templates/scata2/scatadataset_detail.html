@@ -92,6 +92,27 @@
 </table>
 </div>
 {% if tags %}
+<div class="p-4 w-96 bg-stone-100 rounded-lg shadow-md">
+<h2 class="pb-2 pt-2 text-lg font-serif font-bold">Downloads</h2>
+<table class="table-auto min-w-full">
+    <tr>
+        <td class="font-semibold">Tag stats CSV:</td>
+        <td class="text-right">
+            <a class="underline" 
+               href="{% url "dataset-tags-csv" object.id %}">Download</a>
+        </td>
+    </tr>
+    <tr>
+        <td class="font-semibold">Tag stats JSON:</td>
+        <td class="text-right">
+            <a class="underline" 
+               href="{% url "dataset-tags" object.id %}">Download</a>
+            </td>
+    </tr>
+</table>
+</div>
+{% endif %}
+{% if tags %}
 <div class="p-4 bg-stone-100 rounded-lg shadow-md w-11/12">
     <h2 class="pb-2 pt-2 text-lg font-serif font-bold">Sample size distribution</h2>
     <div id="samplesize_plot" class="min-w-full">

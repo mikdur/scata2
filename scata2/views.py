@@ -1,7 +1,6 @@
 from django.shortcuts import render
 from django.urls import reverse_lazy
-from django.http import HttpResponseRedirect
-from django.http import JsonResponse
+from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import ListView, DetailView
@@ -14,7 +13,7 @@ from scata2.models import ScataFile, ScataPrimer, ScataTagSet, ScataAmplicon, \
 import scata2.backend
 
 import django_q.tasks as q2
-import sys
+import csv, urllib
 
 
     
@@ -66,12 +65,33 @@ class OwnedDetailView(LoginRequiredMixin, UserPassesTestMixin,
 class JSONResponseMixin:
 
     def render_to_response(self, context, **response_kwargs):
-        print("foo")
         return JsonResponse(self.get_data(context), **response_kwargs)
 
     # To be overidden
     def get_data(self, context):
         return context
+
+# Mixin to render CSV response
+# Overide get_data with a function that returns
+# a list of lists.
+class CSVResponseMixin:
+
+    def render_to_response(self, context, **response_kwargs):
+        response = HttpResponse(content_type="text/csv",
+            headers={"Content-Disposition": 'attachment; filename="{fn}"'.format(fn=self.get_filename(context))},
+            **response_kwargs)
+        writer=csv.writer(response)
+        for row in self.get_data(context):
+            writer.writerow(row)
+        return response
+
+    # To be overidden
+    def get_data(self, context):
+        return ["",""]
+    
+    def get_filename(self, context):
+        return "data.csv";
+
 
 # Root page
 @login_required
@@ -238,6 +258,22 @@ class DataSetDetailView(OwnedDetailView):
         context['discarded'] = context['object'].seq_total - context['object'].seq_count
         return context
 
+class DataSetTagsCSVView(CSVResponseMixin, DataSetDetailView):
+
+    def get_data(self, context):
+        data = context['tags'].order_by("count").values().values()
+        columns = s = ['tag', 'count'] + \
+            sorted(list(set(data.first().keys()) - 
+                        set(['id', 'dataset_id','tag', 'count',
+                             "min_gc", "max_gc"])))
+        return [columns] + \
+            [[q[b] for b in columns] for q  in data ]
+    
+    def get_filename(self, context):
+        o = context['object']
+        return urllib.parse.quote("dataset_{i}_{n}.csv".format(i=o.id, n=o.name),
+                                  safe="")
+    
 class DataSetTagsJSONView(JSONResponseMixin, DataSetDetailView):
 
     def get_data(self, context):

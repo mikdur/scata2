@@ -23,6 +23,7 @@ urlpatterns = [
     path("dataset/<int:pk>/delete/", views.DataSetDeleteView.as_view(), name="dataset-delete"),
     path("dataset/<int:pk>/detail", views.DataSetDetailView.as_view(), name="dataset-detail"),
     path("dataset/<int:pk>/detail/tags.json", views.DataSetTagsJSONView.as_view(), name="dataset-tags"),
+    path("dataset/<int:pk>/detail/tags.csv", views.DataSetTagsCSVView.as_view(), name="dataset-tags-csv"),
     path("dataset/<int:pk>/detail/pca-tags.json", views.DataSetTagsPCAJSONView.as_view(), name="dataset-pca-tags"),
     path("jobs/", views.JobListView.as_view(), name="job-list"),
     path("jobs/add/", views.JobCreateView.as_view(), name="job-add"),
