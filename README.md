@@ -1,5 +1,7 @@
 # scata2
 
+This is a repository for the development on a new version of the scata pipeline. The system is work in progress and not yet functional.
+
 New implementation of the SCATA pipeline and web service. Major goals for the
 new version are:
 
@@ -14,6 +16,7 @@ functions. (Akin to notes to self)
 - django-private-storage to require authenticated users for file access
 - django-cleanup 
 - django-allauth
+- django-reversion
 
 ## Development
 
