@@ -16,7 +16,6 @@ import django_q.tasks as q2
 import csv, urllib
 
 
-    
 class FilteredCreateView(LoginRequiredMixin, CreateView):
     # Set owner on save
     def form_valid(self, form):
@@ -295,10 +294,10 @@ class JobListView(ListOwnedView):
 
 class JobCreateView(FilteredCreateView):
     model = ScataJob
-    fields = ["name", "description", "datasets", "refsets", 
-              "distance", "min_alignment",
-              "mismatch_pen", "open_pen", "extend_pen", "endgap_pen",
-              "max_homopolymer", "downsample", "lowfreq", "repseqs"]
+    fields = ["name", "description", "method",
+              "datasets", "refsets", "repseqs"]
+    
+    
     
 class JobDeleteView(DeleteToTrashView):
     model = ScataJob

@@ -9,6 +9,7 @@ Add primer
     {% csrf_token %}
 
     {{ form|crispy }}
+    {% block extra_fields %}{% endblock %}
     <input class="{{ button_class }}" type="submit" value="Submit">
 </form>
 
