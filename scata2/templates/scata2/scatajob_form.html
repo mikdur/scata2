@@ -1,3 +1,39 @@
 {% extends "scata2_form.html" %}
+{% load tailwind_filters %}
+
+
 {% block title %}Add Job{% endblock %}
 {% block form_url %}{% url "job-add" %}{% endblock %}
+{% block extra_fields %}
+
+{% for name, mform in method_forms.items %}
+<div id="method_{{ name }}" class="method_forms
+    p-4 w-full bg-stone-200 rounded-lg shadow-md">
+    <h2 class="font-semibold text-xl font-serif pb-5">
+        Option for method {{ name }}
+    </h2>
+    <div class="py-4">
+        {{ mform.description }}
+    </div>
+    <div>
+        {{ mform.form|crispy }}
+    </div>
+</div>
+{% endfor %}
+{% endblock%}
+
+{% block extra_js %}
+<script>
+    $(window).on('load', function() {
+            $('.method_forms').hide();
+            $('#method_'+$('#id_method').val()).show();
+
+    });
+    $(function() {
+        $('#id_method').change(function(){
+            $('.method_forms').hide();
+            $('#method_' + $(this).val()).show();
+        });
+    });
+</script>
+{% endblock %}

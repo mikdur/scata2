@@ -1,4 +1,5 @@
 from django.db import models
+from django.forms import ModelForm
 from django.core.validators import MinValueValidator, MaxValueValidator
 
 
@@ -58,3 +59,12 @@ class ScataMethod(models.Model):
                                 null=False, blank=False, default=0,
                                 validators=[MinValueValidator(0, "Min 0"),
                                             MaxValueValidator(100, "Max 100")])
+
+
+class ScataMethodForm(ModelForm):
+
+    class Meta:
+        model = ScataMethod
+        fields = ["distance", "min_alignment", "mismatch_pen", "open_pen",
+                  "extend_pen", "endgap_pen", "max_homopolymer",
+                  "downsample", "lowfreq" ]

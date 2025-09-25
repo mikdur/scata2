@@ -1,4 +1,5 @@
 from django.db import models
+from django.forms import ModelForm
 
 
 class DummyMethod(models.Model):
@@ -6,3 +7,10 @@ class DummyMethod(models.Model):
     dummy = models.CharField("Dummy setting", default="foo",
                              choices={"foo": "Foo",
                                       "bar": "Bar"})
+
+
+class DummyMethodForm(ModelForm):
+
+    class Meta:
+        model = DummyMethod
+        fields = ["dummy"]

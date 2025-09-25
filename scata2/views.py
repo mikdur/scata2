@@ -11,6 +11,7 @@ from scata2.models import ScataFile, ScataPrimer, ScataTagSet, ScataAmplicon, \
                           ScataDataset, ScataErrorType, ScataTagStat, \
                           ScataJob, ScataModel
 import scata2.backend
+from scata2.methods import methods as clustering_methods
 
 import django_q.tasks as q2
 import csv, urllib
@@ -294,11 +295,18 @@ class JobListView(ListOwnedView):
 
 class JobCreateView(FilteredCreateView):
     model = ScataJob
-    fields = ["name", "description", "method",
-              "datasets", "refsets", "repseqs"]
-    
-    
-    
+    fields = ["name", "description", "datasets", 
+              "refsets", "repseqs", "method",]
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context['method_forms'] = {k: {'form':v["form"](),
+                                       'description':v['description']} 
+                                       for k, v in clustering_methods.items()}
+        print(context)        
+        return context
+
 class JobDeleteView(DeleteToTrashView):
     model = ScataJob
     success_url = reverse_lazy("job-list")
