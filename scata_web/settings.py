@@ -197,3 +197,9 @@ Q_CLUSTER = {
         },
     }
 }
+
+try:
+    from .local import *
+except ImportError:
+    pass
+
