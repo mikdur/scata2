@@ -4,6 +4,8 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 
 
 class ScataMethod(models.Model):
+    job = models.ForeignKey("scata2.ScataJob", on_delete=models.CASCADE,
+                            unique=True)
     distance = models.FloatField("Clustering distance 0.001 < x < 0.10",
                                  null=False, blank=False, default=0.015,
                                  validators=[MinValueValidator(0.001,

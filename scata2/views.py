@@ -6,6 +6,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import ListView, DetailView
 from django.views.generic.edit import CreateView, DeleteView
 from django.db.models import Q
+from django.core.exceptions import SuspiciousOperation
 from scata2.models import ScataFile, ScataPrimer, ScataTagSet, ScataAmplicon, \
                           ScataReferenceSet, ScataRefsetErrorType, \
                           ScataDataset, ScataErrorType, ScataTagStat, \
@@ -304,8 +305,29 @@ class JobCreateView(FilteredCreateView):
         context['method_forms'] = {k: {'form':v["form"](),
                                        'description':v['description']} 
                                        for k, v in clustering_methods.items()}
-        print(context)        
         return context
+
+    # Catch class based form validation to take care of method-specific 
+    # form data and validate.
+
+    def form_valid(self, form):
+        form.instance.owner = self.request.user
+        method = form.data['method']
+        if method not in clustering_methods:
+            raise SuspiciousOperation("Unknown scata method")
+
+
+        method_form = clustering_methods[method]['form'](self.request.POST)
+        if method_form.errors:
+            return super().form_invalid(form)
+
+        self.object = form.save()
+        method_form.instance.job = self.object
+        method_form.save()
+
+        return HttpResponseRedirect(self.get_success_url())
+
+
 
 class JobDeleteView(DeleteToTrashView):
     model = ScataJob
