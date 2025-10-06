@@ -348,7 +348,7 @@ class ScataJob(ScataModel):
                               choices={ k:v['description'] for k, v in clustering_methods.items() })
 
     # Status and internal fields
-    status = models.CharField("Status", default="new", 
+    status = models.CharField("Status", default="Pending", 
                               editable=False, max_length=10)
     
     def get_absolute_url(self):
