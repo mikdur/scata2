@@ -328,6 +328,15 @@ class JobCreateView(FilteredCreateView):
         return HttpResponseRedirect(self.get_success_url())
 
 
+class JobDetailView(OwnedDetailView):
+    model = ScataJob
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        m=self.object.method
+        context['method_object']=clustering_methods[m]['model'].objects.all().\
+            filter(job=self.object.pk)[0]
+        return context
 
 class JobDeleteView(DeleteToTrashView):
     model = ScataJob

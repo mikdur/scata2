@@ -1,0 +1,80 @@
+{% extends "scata2_base.html" %}
+{% load method_tags %}
+{% block title %}Job {{ object.name }} - {{ object.create_date|date:"Y-m-d" }}{% endblock %}
+
+{% block scata2_content %}
+<div class="flex flex-wrap gap-8">
+    {% if  object.description %}
+    <div class="p-4 w-96 bg-stone-100 rounded-lg shadow-md">
+        <h3 class="text-lg font-serif font-bold">Description</h2>
+        <div class="prose">
+            {{ object.description }}
+        </div>
+    </div>
+    {% endif %}
+    <div class="p-4 w-96 bg-stone-100 rounded-lg shadow-md">
+        <h3 class="text-lg font-serif font-bold">Datasets used</h2>
+        <table class="table-auto min-w-full">
+            <thead class="text-left">
+                <th>Name</th>
+                <th class="text-right">Size</th>
+                <th></th>
+            </thead>
+            {% for d in object.datasets.all %}
+               <tr>
+                    <td class="font-semibold"> 
+                        {{ d.name }} 
+                    </td>
+                    <td class="text-right font-mono">
+                        {{ d.seq_count }}  
+                    </td>
+                    <td class="font-semibold px-2"> 
+                        <a class="underline" 
+                            href="{% url "dataset-detail" d.pk %}">
+                            Details
+                        </a>
+                    </td>
+                </tr>
+            {% empty %}
+            <tr>
+                <td>None</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    <div class="p-4 w-96 bg-stone-100 rounded-lg shadow-md">
+        <h3 class="text-lg font-serif font-bold">Reference sets</h2>
+        <table class="table-auto min-w-full">
+            <thead class="text-left">
+                <th>Name</th>
+                <th class="text-right">Size</th>
+                <th></th>
+            </thead>
+            {% for d in object.refsets.all %}
+               <tr>
+                    <td class="font-semibold"> 
+                        {{ d.name }} 
+                    </td>
+                    <td class="text-right font-mono">
+                        {{ d.seq_count }} 
+                    </td>
+                    <td class="font-semibold px-2"> 
+                        <a class="underline" 
+                            href="{% url "referenceset-detail" d.pk %}">
+                            Details
+                        </a>
+                    </td>
+                </tr>
+            {% empty %}
+            <tr>
+                <td>None</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+</div>
+<h2 class="py-6 text-xl font-serif font-bold">Method {{ object.method }} details </h2>
+{% method_results %}
+
+{% endblock %}

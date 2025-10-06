@@ -1,11 +1,37 @@
-{% extends "scata2_base.html" %}
+{% extends "scata2_list.html" %}
 
-{% block scata2_content %}
-    <h2>Jobs</h2>
-    <a href="{% url "job-add" %}">Add job</a>
-    <ul>
-        {% for job in object_list %}
-            <li>{{ job.name }} <a href="{% url "job-delete" job.id %}">Delete</a></li>
-        {% endfor %}
-    </ul>
+{% block title %}Jobs{% endblock %}
+
+{% block table_head %}
+<th class="{{ cell_class }}"> Name </th>
+<th class="{{ cell_class }}"> Method </th>
+<th class="{{ cell_class }}"> Status </th>
+
+<th class="{{ cell_class }}">  </th>
+<th class="{{ cell_class }}">  </th>
 {% endblock %}
+{% block table_body %}
+    {% for job in object_list %}
+        <tr class="{{ row_class }} {% cycle  row_odd row_even %}">
+            <td class="{{ cell_class }}">
+                {{ job.name }}
+                {% if job.public %}(Public){% endif %}
+            </td>
+            <td class="{{ cell_class }}">
+                {{ job.method }}
+            </td>
+            <td class="{{ cell_class }}">
+                {{ job.status }}
+            </td>
+            <td class="{{ cell_class }}">
+                <a class="{{ button_class }}" href="{% url "job-detail" job.id %}">Details</a>
+            </td>
+            <td class="{{ cell_class }}"> 
+                {% if not file.public %}
+                <a class="{{ button_class }}" href="{% url "job-delete" job.id %}">Delete</a>
+                {% endif %}
+            </td>
+        </tr>
+    {% endfor %}
+{% endblock %}
+{% block add_link %}<a class="{{ button_class }}" href="{% url "job-add" %}">New job</a>{% endblock %}
