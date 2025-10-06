@@ -1,11 +1,11 @@
 
-import scata2.methods.scata as scata
-import scata2.methods.dummy as dummy
+import scata2.methods.scata.models as scata_models
+import scata2.methods.dummy.models as dummy_models
 
-methods = {"scata": {"model": scata.models.ScataMethod,
-                     "form": scata.models.ScataMethodForm,
-                     "description": "Scata"},
-           "dummy": {"model": dummy.models.DummyMethod,
-                     "form": dummy.models.DummyMethodForm,
-                     "description": "Dummy test method"},
+methods = {"scata": {"model": scata_models.ScataMethod,
+                     "form": scata_models.ScataMethodForm,
+                     "description": "Scata classic"},
+           "dummy": {"model": dummy_models.DummyMethod,
+                     "form": dummy_models.DummyMethodForm,
+                     "description": "Dummy test"},
            }
