@@ -1,1 +1,44 @@
-Foo! {{ object.pk }}
+<div class="flex flex-wrap gap-8">
+    <div class="p-4 w-96 bg-stone-100 rounded-lg shadow-md">
+        <h2 class="pb-2 pt-2 text-lg font-serif font-bold">Settings</h2>
+        <table class="table-auto min-w-full">
+            <tr>
+                <td class="font-semibold">Clustering threshold:</td>
+                <td class="text-right font-mono"> {{ method_object.distance }}</td>
+            </tr>
+            <tr>
+                <td class="font-semibold">Minimum alignment:</td>
+                <td class="text-right font-mono"> {{ method_object.min_alignment }}</td>
+            </tr>
+            <tr>
+                <td class="font-semibold">Mismatch penalty:</td>
+                <td class="text-right font-mono"> {{ method_object.mismatch_pen }}</td>
+            </tr>
+            <tr>
+                <td class="font-semibold">Gap open penalty:</td>
+                <td class="text-right font-mono"> {{ method_object.open_pen }}</td>
+            </tr>
+            <tr>
+                <td class="font-semibold">Gap extension penalty:</td>
+                <td class="text-right font-mono"> {{ method_object.extend_pen }}</td>
+            </tr>
+            <tr>
+                <td class="font-semibold">End gap penalty:</td>
+                <td class="text-right font-mono"> {{ method_object.endgap_pen }}</td>
+            </tr>
+            <tr>
+                <td class="font-semibold">Max homopolymer length:</td>
+                <td class="text-right font-mono"> {{ method_object.max_homopolymer }}</td>
+            </tr>
+            <tr>
+                <td class="font-semibold">Downsample limit:</td>
+                <td class="text-right font-mono"> {{ method_object.downsample }}</td>
+            </tr>
+            <tr>
+                <td class="font-semibold">Global low frequency prune:</td>
+                <td class="text-right font-mono"> {{ method_object.lowfreq }}</td>
+            </tr>
+
+        </table>
+    </div>
+</div>
