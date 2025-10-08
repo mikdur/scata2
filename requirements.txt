@@ -2,10 +2,10 @@ biopython<2.0
 blessed
 Django>=5.2,<5.3
 django-picklefield
-django-q2
 psutil
 django-tailwind[reload]
 crispy-tailwind==1.0.3
 scikit-learn==1.6.1
 scipy==1.15.3
 sentry-sdk
+django-q2[sentry]
