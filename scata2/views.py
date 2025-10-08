@@ -325,6 +325,9 @@ class JobCreateView(FilteredCreateView):
         method_form.instance.job = self.object
         method_form.save()
 
+        q2.async_task(scata2.backend.run_job, self.object.pk,
+                      task_name="job pk={id}".format(id=self.object.pk))
+
         return HttpResponseRedirect(self.get_success_url())
 
 
