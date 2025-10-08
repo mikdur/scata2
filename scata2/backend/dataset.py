@@ -1,4 +1,5 @@
-import gzip,pickle
+import gzip
+import pickle
 from io import BytesIO
 import time
 from django.core.files import File
@@ -6,7 +7,6 @@ from scata2.models import ScataDataset, ScataErrorType
 from scata2.backend.ReadHandler import Reads, ScataReadsError, ScataFileError
 import scata2.backend
 import django_q.tasks as q2
-
 
 
 def check_dataset(pk):
@@ -19,7 +19,7 @@ def check_dataset(pk):
     seqs = dict()
 
     # Dictionary of mappings between tag and readIDs
-    # 
+    #
     #  {"tag_id":{"reads":[ .. ], "cnt": NN, "rev": NN}
     #
     tags = dict()
@@ -30,12 +30,12 @@ def check_dataset(pk):
             file2 = gzip.open(dataset.file2.file.open(mode="rb"), mode="rt")
         else:
             file2 = None
-    except gzip.BadGzipFile as e:
-            dataset.validated = True
-            dataset.is_valid = False
-            dataset.progress = "Failed: not a gzipped file"
-            dataset.save()
-            return
+    except gzip.BadGzipFile:
+        dataset.validated = True
+        dataset.is_valid = False
+        dataset.progress = "Failed: not a gzipped file"
+        dataset.save()
+        return
 
     reads = Reads(file1=file1,
                   file2=file2,
@@ -59,11 +59,11 @@ def check_dataset(pk):
             total_reads += 1
             if total_reads % 10000 == 0:
                 dataset.progress = ("Filtering, {t} reads done. {g} reads " +
-                "accepted").format(g=good_reads, t=total_reads)
+                                    "accepted").format(g=good_reads,
+                                                       t=total_reads)
                 dataset.save()
             read = next(reads)
-            
-            
+
             if read.tag in tags:
                 tags[read.tag]["cnt"] += 1
                 if read.reversed:
@@ -72,27 +72,27 @@ def check_dataset(pk):
             else:
                 tags[read.tag] = {"cnt": 1,
                                   "rev": 1 if read.reversed else 0,
-                                  "reads": [ read.seq_record.id ],
+                                  "reads": [read.seq_record.id],
                                   }
-        
-            seqs[read.seq_record.id]=read.seq_record.seq.upper()
-            good_reads += 1 
+
+            seqs[read.seq_record.id] = read.seq_record.seq.upper()
+            good_reads += 1
             if read.reversed:
-                rev_reads +=1
-            
+                rev_reads += 1
+
         except ScataReadsError as e:
             if e.error in filter_results:
                 filter_results[e.error]["cnt"] += 1
             else:
-                filter_results[e.error] = {"msg":e.message,
-                                           "cnt":1}
+                filter_results[e.error] = {"msg": e.message,
+                                           "cnt": 1}
         except ScataFileError as e:
             dataset.validated = True
             dataset.is_valid = False
             dataset.progress = "Failed: " + e.message
             dataset.save()
             return
-        except gzip.BadGzipFile as e:
+        except gzip.BadGzipFile:
             dataset.validated = True
             dataset.is_valid = False
             dataset.progress = "Failed: not a gzipped file/broken gzip file"
@@ -101,7 +101,8 @@ def check_dataset(pk):
         except StopIteration:
             break
 
-    dataset.progress = "Finalising, {g}/{t} good reads".format(g=good_reads, t=total_reads)
+    dataset.progress = "Finalising, {g}/{t} good reads".format(g=good_reads,
+                                                               t=total_reads)
     dataset.save()
 
     # Save data to files
@@ -118,8 +119,6 @@ def check_dataset(pk):
         seq_file.seek(0)
         name = "seqs_{id}".format(id=pk)
         dataset.sequences.save(name, File(seq_file, name=name))
-    
-
 
     dataset.seq_count = good_reads
     dataset.seq_total = total_reads
@@ -129,9 +128,10 @@ def check_dataset(pk):
     dataset.validated = True
     if good_reads > 0:
         dataset.is_valid = True
-    dataset.progress = "Ready, {g}/{t} good reads".format(g=good_reads, t=total_reads)
+    dataset.progress = "Ready, {g}/{t} good reads".format(g=good_reads,
+                                                          t=total_reads)
     dataset.save()
-    
+
     for e in filter_results.items():
         err = ScataErrorType()
         err.error = e[0]
@@ -141,5 +141,4 @@ def check_dataset(pk):
         err.save()
 
     q2.async_task(scata2.backend.dataset_stats, pk,
-                      task_name="dataset stats pk={id}".format(id=pk))    
-
+                  task_name="dataset stats pk={id}".format(id=pk))
