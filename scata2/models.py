@@ -219,7 +219,7 @@ class ScataDataset(ScataModel):
                                     validators=[MinValueValidator(10, "Min is 10"),
                                                MaxValueValidator(100, "Max is 100")])
     min_qual = models.IntegerField("Minimum quality of any base", blank=False, 
-                                    null=False, default=20,
+                                    null=False, default=5,
                                     validators=[MinValueValidator(1, "Min is 1"),
                                                MaxValueValidator(100, "Max is 100")])
     kmer_size = models.IntegerField("Overlap join: kmer size", blank=False, 
@@ -247,6 +247,11 @@ class ScataDataset(ScataModel):
                                          "fastp":"Paired End FASTQ (two files with mates)",
                                          "fasta":"First file FASTA",
                                          "fastaq":"First file FASTA, second file quality data"})
+
+    # FIXME: Once the dataset is imported, the links to the files need
+    # to be cleared. File name should be saved as string instead in order
+    # to enable deletion of files in the future without loosing the dataset.
+
     file1 = models.ForeignKey(ScataFile, null=False, blank=False,
                               verbose_name="File 1",
                               on_delete=models.PROTECT,
@@ -333,6 +338,11 @@ class ScataTagStat(models.Model):
 
 class ScataJob(ScataModel):
     # Job settings
+    amplicon = models.ForeignKey("scata2.ScataAmplicon", null=True, blank=True,
+                                 on_delete=models.PROTECT,
+                                 verbose_name="Amplicon to use for clustering" +
+                                 "leave unset to use full imported amplicon")
+
     datasets = models.ManyToManyField(ScataDataset, verbose_name="Datasets", 
                                       blank=False)
     refsets = models.ManyToManyField(ScataReferenceSet, verbose_name="References",
