@@ -297,7 +297,7 @@ class JobListView(ListOwnedView):
 class JobCreateView(FilteredCreateView):
     model = ScataJob
     fields = ["name", "description", "datasets", 
-              "refsets", "repseqs", "method",]
+              "amplicon", "refsets", "repseqs", "method",]
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
