@@ -11,9 +11,6 @@ class DummyMethod(Method):
 
     def cluster(self):
         do_cluster(self)
-        print("done")
-        pass
-
 
 class DummyMethodForm(ModelForm):
 
