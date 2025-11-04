@@ -398,5 +398,5 @@ class ScataJob(ScataModel):
         return "{u} {status}".format(u=self.get_owner(),
                                      status=self.status)
 
-    def foo():
+    def foo(self):
         print(clustering_methods)
