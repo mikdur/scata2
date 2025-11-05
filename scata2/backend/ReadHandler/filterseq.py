@@ -148,9 +148,11 @@ complement_trans_table = { 'A' : base_T,
 
 class SeqDeTagger:
     # Translation of bases for primer identification.
-    def __init__(self, p5, p5s, p3, p3s, t5, t3, keep_primer=False):
-        self.p5s = p5s
-        self.p3s = p3s
+    def __init__(self, amplicon, t5=None, t3=None, keep_primer=False):
+        p5 = amplicon.five_prime_primer.sequence
+        p3 = amplicon.three_prime_primer.sequence
+        self.p5s = amplicon.five_prime_primer.mismatches
+        self.p3s = amplicon.three_prime_primer.mismatches
         self.t5 = t5
         self.t3 = t3
         self.keep_primer = keep_primer

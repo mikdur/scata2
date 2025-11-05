@@ -65,21 +65,15 @@ class Reads:
             self.max_length = amplicon.max_length
 
             if ignore_tags:
-                self.detagger = SeqDeTagger(amplicon.five_prime_primer.sequence,
-                                        amplicon.five_prime_primer.mismatches,
-                                        amplicon.three_prime_primer.sequence,
-                                        amplicon.three_prime_primer.mismatches,
+                self.detagger = SeqDeTagger(amplicon,
                                         None,
                                         None,
                                         keep_primer=keep_primer)
             else:
-                self.detagger = SeqDeTagger(amplicon.five_prime_primer.sequence,
-                                        amplicon.five_prime_primer.mismatches,
-                                        amplicon.three_prime_primer.sequence,
-                                        amplicon.three_prime_primer.mismatches,
-                                        amplicon.five_prime_tag.tags if amplicon.five_prime_tag else None,
-                                        amplicon.three_prime_tag.tags if amplicon.three_prime_tag else None,
-                                        keep_primer=keep_primer)
+                self.detagger = SeqDeTagger(amplicon,
+                                            amplicon.five_prime_tag.tags if amplicon.five_prime_tag else None,
+                                            amplicon.three_prime_tag.tags if amplicon.three_prime_tag else None,
+                                            keep_primer=keep_primer)
     
         else:
             self.detagger = None
