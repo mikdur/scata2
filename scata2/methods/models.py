@@ -15,6 +15,10 @@ def open_dataset(dataset):
             return iter(pickle.load(gz).items())
 
 class SeqIterator():
+    total_cnt = 0
+    error_cnt = 0
+    current_dataset = None
+    amplicon = None
     detagger = None
     datasets = None
     current_dataset = None
@@ -22,12 +26,17 @@ class SeqIterator():
     error_cnt = 0
 
     def __init__(self, datasets, amplicon=None):
+        for dataset in datasets.all():
+            self.total_cnt += dataset.seq_count
         self.datasets = iter(datasets.all())
         if amplicon is not None:
             self.detagger = SeqDeTagger(amplicon)
 
     def __iter__(self):
         return self
+
+    def __len__(self):
+        return self.total_cnt
 
     def __next__(self):
         if self.current_dataset is None:
