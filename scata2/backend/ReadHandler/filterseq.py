@@ -253,17 +253,17 @@ class SeqDeTagger:
                 if self.keep_primer:
                     p3_pos += p3_len
 
-            seq_record.seq = seq[(p5_pos + len(self.p5)):p3_pos]
+            seq_record.seq = seq[p5_pos:p3_pos]
             result.seq_record = seq_record
             if q:
-                q.quals = q.quals[(p5_pos + len(self.p5)):p3_pos]
+                q.quals = q.quals[p5_pos:p3_pos]
                 result.qual = q
 
         else:
-            seq_record.seq = seq[(p5_pos + len(self.p5)):]
+            seq_record.seq = seq[p5_pos:]
             result.seq_record = seq_record
             if q:
-                q.quals = q.quals[(p5_pos + len(self.p5)):]
+                q.quals = q.quals[p5_pos:]
                 result.qual = q
 
             
