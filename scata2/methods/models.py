@@ -1,6 +1,11 @@
 from django.db import models
 import gzip
 import pickle
+from Bio.SeqRecord import SeqRecord
+from scata2.backend.ReadHandler.filterseq import SeqDeTagger
+from scata2.backend.ReadHandler.qualseq import QualSeq
+from scata2.backend.ReadHandler.exceptions import ScataReadsError
+
 
 
 # Helper function to open dataset
@@ -10,13 +15,22 @@ def open_dataset(dataset):
             return iter(pickle.load(gz).items())
 
 class SeqIterator():
-    # Init with queryset of sequences
-
+    detagger = None
     datasets = None
     current_dataset = None
+    errors = dict()
+    error_cnt = 0
+
+    def __init__(self, datasets, amplicon):
+        self.datasets = iter(datasets.all())
+
+    def __init__(self, datasets, amplicon):
+        self.datasets = datasets
 
     def __init__(self, datasets, amplicon=None):
         self.datasets = iter(datasets.all())
+        if amplicon is not None:
+            self.detagger = SeqDeTagger(amplicon)
 
     def __iter__(self):
         return self
@@ -25,12 +39,31 @@ class SeqIterator():
         if self.current_dataset is None:
             self.current_dataset = open_dataset(next(self.datasets))
 
+        if self.detagger is None:
+            try:
+                return next(self.current_dataset)
+            except StopIteration:
+                self.current_dataset = open_dataset(next(self.datasets))
+                return next(self.current_dataset)
+        else:
+            while True:
+                try:
+                    seq_tuple = next(self.current_dataset)
+                except StopIteration:
+                    self.current_dataset = open_dataset(next(self.datasets))
+                    seq_tuple = next(self.current_dataset)
 
-        try:
-            return next(self.current_dataset)
-        except StopIteration:
-            self.current_dataset = open_dataset(next(self.datasets))
-            return next(self.current_dataset)
+                try:
+                    seq = self.detagger.detag_seq(QualSeq(SeqRecord(seq_tuple[1]))).seq_record.seq
+                    return (seq_tuple[0], seq)
+                except ScataReadsError as e:
+                    self.error_cnt += 1
+                    if e.error not in self.errors:
+                        self.errors[e.error] = dict( cnt = 1,
+                                                     msg = e.message)
+                    else:
+                        self.errors[e.error]['cnt'] += 1
+
 
 
 class Method(models.Model):
