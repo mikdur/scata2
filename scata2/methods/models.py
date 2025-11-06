@@ -68,6 +68,33 @@ class SeqIterator():
                         self.errors[e.error]['cnt'] += 1
 
 
+class RefIterator():
+    total_cnt = 0
+    current_refset = None
+    refsets = None
+
+
+    def __init__(self, refsets):
+        for refset in refsets.all():
+            self.total_cnt += refset.seq_count
+        self.refsets = iter(refsets.all())
+
+    def __len__(self):
+        return self.total_cnt
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self.current_refset is None:
+            self.current_refset = open_dataset(next(self.refsets))
+
+        try:
+            return next(self.current_refset)
+        except StopIteration:
+            self.current_refset = open_dataset(next(self.refsets))
+            return next(self.current_refset)
+
 
 class Method(models.Model):
     job = models.OneToOneField("scata2.ScataJob", on_delete=models.CASCADE,
@@ -81,6 +108,9 @@ class Method(models.Model):
 
     def get_seq_iterator(self):
         return SeqIterator(self.job.datasets, self.job.amplicon)
+
+    def get_ref_iterator(self):
+        return RefIterator(self.job.refsets)
 
     def cluster(self):
         pass
