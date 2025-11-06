@@ -5,7 +5,7 @@ import time
 from django.core.files import File
 from scata2.models import ScataDataset, ScataErrorType
 from scata2.backend.ReadHandler import Reads, ScataReadsError, ScataFileError
-import scata2.backend
+from scata2.backend.dataset_stats import dataset_stats
 import django_q.tasks as q2
 
 
@@ -140,5 +140,5 @@ def check_dataset(pk):
         err.dataset = dataset
         err.save()
 
-    q2.async_task(scata2.backend.dataset_stats, pk,
+    q2.async_task(dataset_stats, pk,
                   task_name="dataset stats pk={id}".format(id=pk))
