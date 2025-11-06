@@ -11,7 +11,12 @@ from scata2.models import ScataFile, ScataPrimer, ScataTagSet, ScataAmplicon, \
                           ScataReferenceSet, ScataRefsetErrorType, \
                           ScataDataset, ScataErrorType, ScataTagStat, \
                           ScataJob, ScataModel
-import scata2.backend
+from scata2.backend.job import run_job
+from scata2.backend.file import check_file
+from scata2.backend.dataset import check_dataset
+from scata2.backend.tagset import parse_tagset
+from scata2.backend.referenceset import check_refset
+
 from scata2.methods import methods as clustering_methods
 
 import django_q.tasks as q2
@@ -122,7 +127,7 @@ class FileCreateView(FilteredCreateView):
     def form_valid(self, form):
         # Call the parent's form_valid() to save the form
         response = super().form_valid(form)
-        q2.async_task(scata2.backend.check_file, self.object.pk,
+        q2.async_task(check_file, self.object.pk,
                       task_name="file checksum pk={id}".
                       format(id=self.object.pk))
         return response
@@ -166,7 +171,7 @@ class TagSetCreateView(FilteredCreateView):
     def form_valid(self, form):
         # Call the parent's form_valid() to save the form
         response = super().form_valid(form)
-        q2.async_task(scata2.backend.parse_tagset, self.object.pk,
+        q2.async_task(parse_tagset, self.object.pk,
                       task_name="tagset pk={id}".format(id=self.object.pk))
         return response
 
@@ -218,7 +223,7 @@ class ReferenceSetCreateView(FilteredCreateView):
     def form_valid(self, form):
         # Call the parent's form_valid() to save the form
         response = super().form_valid(form)
-        q2.async_task(scata2.backend.check_refset, self.object.pk,
+        q2.async_task(check_refset, self.object.pk,
                       task_name="refset pk={id}".format(id=self.object.pk))
         return response
 
@@ -256,7 +261,7 @@ class DataSetCreateView(FilteredCreateView):
     def form_valid(self, form):
         # Call the parent's form_valid() to save the form
         response = super().form_valid(form)
-        q2.async_task(scata2.backend.check_dataset, self.object.pk,
+        q2.async_task(check_dataset, self.object.pk,
                       task_name="dataset pk={id}".format(id=self.object.pk))
         return response
 
@@ -351,7 +356,7 @@ class JobCreateView(FilteredCreateView):
         method_form.instance.job = self.object
         method_form.save()
 
-        q2.async_task(scata2.backend.run_job, self.object.pk,
+        q2.async_task(run_job, self.object.pk,
                       task_name="job pk={id}".format(id=self.object.pk))
 
         return HttpResponseRedirect(self.get_success_url())
