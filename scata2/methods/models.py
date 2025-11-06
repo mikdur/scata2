@@ -21,12 +21,6 @@ class SeqIterator():
     errors = dict()
     error_cnt = 0
 
-    def __init__(self, datasets, amplicon):
-        self.datasets = iter(datasets.all())
-
-    def __init__(self, datasets, amplicon):
-        self.datasets = datasets
-
     def __init__(self, datasets, amplicon=None):
         self.datasets = iter(datasets.all())
         if amplicon is not None:
