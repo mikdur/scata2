@@ -21,9 +21,7 @@ class SeqIterator():
     amplicon = None
     detagger = None
     datasets = None
-    current_dataset = None
     errors = dict()
-    error_cnt = 0
 
     def __init__(self, datasets, amplicon=None):
         for dataset in datasets.all():

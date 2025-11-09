@@ -1,6 +1,7 @@
 from Bio.Seq import Seq
 from .exceptions import ScataReadsError
 from .qualseq import QualSeq
+from numba import njit
 import numpy as np
 
 
@@ -145,6 +146,23 @@ complement_trans_table = { 'A' : base_T,
                 'V' : base_T | base_G | base_C,
                 'N' : base_T | base_G | base_A | base_C }
 
+# This function is type hinted to ensure proper numba optimisation
+
+@njit
+def find_primer_pos(seq_ar, primer_ar, score, reverse=False):
+    p_len = len(primer_ar)
+    if not reverse:
+        for x in range(0, min(len(seq_ar), 20000) - p_len):
+            m = np.count_nonzero(np.bitwise_and(primer_ar, seq_ar[x:x + p_len]))
+            if p_len - m <= score:
+                return x
+    else:
+        for x in range(len(seq_ar) - p_len - 1, 0, -1):
+            m = np.count_nonzero(np.bitwise_and(primer_ar, seq_ar[x:x + p_len]))
+            if p_len - m <= score:
+                return x
+    return -1
+
 
 class SeqDeTagger:
     # Translation of bases for primer identification.
@@ -159,14 +177,14 @@ class SeqDeTagger:
 
         # Translate primer sequence
         self.p5 = [trans_table[x] for x in p5.upper() if x in trans_table]
-        self.p5_ar = np.array(self.p5)
+        self.p5_ar = np.array(self.p5, dtype=int)
         self.p3 = [complement_trans_table[x] for x in p3.upper() if x in complement_trans_table]
         self.p3.reverse()
-        self.p3_ar = np.array(self.p3)
+        self.p3_ar = np.array(self.p3, dtype=int)
         self.p5len = float(len(self.p5))
         self.p3len = float(len(self.p3))
 
-
+        print(int(self.p5s))
     # Function to detag sequence and return a dict()
     # with sequence and metadata
 
@@ -176,7 +194,8 @@ class SeqDeTagger:
         seq_record = qualseq.get_seq()
         seq = seq_record.seq
         seq_str = str(seq)
-        seq_ar = np.array([trans_table[x] if not x == 'N' else 0 for x in str(seq).upper() if x in trans_table])
+        seq_ar = np.array([trans_table[x] if not x == 'N' else 0 for x in str(seq).upper() if x in trans_table],
+                            dtype=int)
         
         q=qualseq.get_qual()        
 
@@ -184,11 +203,8 @@ class SeqDeTagger:
         accepted_t3 = set()
         if self.p5:
             p5_len = len(self.p5)
-            for x in range(0, min(len(seq_str), 20000 + p5_len ) - p5_len):
-                m = np.count_nonzero(np.bitwise_and(self.p5_ar,seq_ar[x:x+p5_len]))
-                if p5_len - m <= self.p5s:
-                    p5_pos = x
-                    break
+
+            p5_pos = find_primer_pos(seq_ar, self.p5_ar, int(self.p5s))
 
             if p5_pos < 0:
                 result.reversed = True
@@ -198,12 +214,8 @@ class SeqDeTagger:
                 seq_str = str(seq)
                 seq_ar = np.array([trans_table[x] if not x == 'N' else 0 for x in str(seq).upper() if x in trans_table])
 
-                for x in range(0, min(len(seq_str), 20000 + p5_len ) - p5_len):
-                    m = np.count_nonzero(np.bitwise_and(self.p5_ar,seq_ar[x:x+p5_len]))
+                p5_pos = find_primer_pos(seq_ar, self.p5_ar, int(self.p5s))
 
-                    if p5_len - m <= self.p5s:
-                        p5_pos = x
-                        break
             if p5_pos < 0:
                 raise ScataReadsError("no_primer5", "No 5' primer found")
             
@@ -228,12 +240,8 @@ class SeqDeTagger:
 
         if self.p3:
             p3_len = len(self.p3)
-            
-            for x in range(len(seq) - p3_len - 1, p5_pos, -1):
-                m=np.count_nonzero(np.bitwise_and(self.p3_ar, seq_ar[x:x+p3_len]))
-                if p3_len - m <= self.p3s:
-                    p3_pos = x
-                    break
+
+            p3_pos = find_primer_pos(seq_ar, self.p3_ar, int(self.p3s), True)
             if p3_pos < 0:
                 raise ScataReadsError("no_primer3", "No 3' primer found")
     
