@@ -32,6 +32,7 @@ def filter_full(qualseq, min_length, mean_min, min_qual):
 # This code is broken. Leaving it to be fixed
 # if there is demand for it.
 
+
 def filter_hqr(qualseq, min_length, mean_min, min_qual):
     seq_record = qualseq.get_seq()
     qual = qualseq.get_qual()
