@@ -4,6 +4,9 @@ class QualSeq:
         self.seq_record = seq_record
         self.qual = qual
 
+    def __len__ (self):
+        return len(self.seq_record.seq)
+
     def get_seq(self):
         return self.seq_record
     

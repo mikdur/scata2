@@ -101,8 +101,13 @@ class Reads:
         
         if self.filtering == "fs":
             if self.detagger:
-                return self.detagger.detag_seq(qualseq)
+                ds = self.detagger.detag_seq(qualseq)
+                if len(ds) < self.min_length:
+                    raise ScataReadsError("too_short", "Read too short")
+                return ds
             else:
+                if len(qualseq) < self.min_length:
+                    raise ScataReadsError("too_short", "Read too short")
                 return qualseq
 
         if not qualseq.qual:
@@ -113,8 +118,13 @@ class Reads:
             qs = filter_full(qualseq, self.min_length,
                                self.mean_min, self.min_qual)
             if self.detagger:
-                return self.detagger.detag_seq(qs)
+                ds = self.detagger.detag_seq(qs)
+                if len(ds) < self.min_length:
+                    raise ScataReadsError("too_short", "Read too short")
+                return ds
             else:
+                if len(qs) < self.min_length:
+                    raise ScataReadsError("too_short", "Read too short")
                 return qs
 
         elif self.filtering == "hqr":
