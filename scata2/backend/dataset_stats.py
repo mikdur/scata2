@@ -66,6 +66,9 @@ def dataset_stats(pk):
 
         for s in tags[t]['reads']:
             seq = str(seqs[s])
+            if len(seq) == 0:
+                print("Seq is empty {}".format(s))
+                continue
             lens.append(len(seq))
             gc = 0
             for i in range(len(seq)):
