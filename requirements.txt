@@ -9,3 +9,4 @@ scikit-learn==1.6.1
 scipy==1.15.3
 sentry-sdk
 django-q2[sentry]
+numba
