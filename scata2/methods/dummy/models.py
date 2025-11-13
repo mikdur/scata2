@@ -1,10 +1,10 @@
-from scata2.methods.models import Method
+from scata2.methods.models import ScataMethod
 from django.db import models
 from django.forms import ModelForm
 from .cluster import do_cluster
 
 
-class DummyMethod(Method):
+class ScataDummyMethod(ScataMethod):
     dummy = models.CharField("Dummy setting", default="foo",
                              choices={"foo": "Foo",
                                       "bar": "Bar"})
@@ -22,8 +22,8 @@ class DummyMethod(Method):
     def cluster(self):
         do_cluster(self)
 
-class DummyMethodForm(ModelForm):
+class ScataDummyMethodForm(ModelForm):
 
     class Meta:
-        model = DummyMethod
+        model = ScataDummyMethod
         fields = ["dummy"]

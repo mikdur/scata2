@@ -94,7 +94,7 @@ class RefIterator():
             return next(self.current_refset)
 
 
-class Method(models.Model):
+class ScataMethod(models.Model):
     job = models.OneToOneField("scata2.ScataJob", on_delete=models.CASCADE,
                                related_name="job_method")
 
@@ -118,3 +118,4 @@ class Method(models.Model):
     def run_job(cls, job):
         instance = cls.objects.get(job=job)
         instance.cluster()
+

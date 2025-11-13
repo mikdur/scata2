@@ -1,10 +1,10 @@
 from django.db import models
-from scata2.methods.models import Method
+from scata2.methods.models import ScataMethod
 from django.forms import ModelForm
 from django.core.validators import MinValueValidator, MaxValueValidator
 
 
-class ScataMethod(Method):
+class ScataScataMethod(ScataMethod):
     distance = models.FloatField("Clustering distance 0.001 < x < 0.10",
                                  null=False, blank=False, default=0.015,
                                  validators=[MinValueValidator(0.001,
@@ -66,10 +66,13 @@ class ScataMethod(Method):
         pass
 
 
-class ScataMethodForm(ModelForm):
+class ScataScataMethodForm(ModelForm):
 
     class Meta:
-        model = ScataMethod
+        model = ScataScataMethod
         fields = ["distance", "min_alignment", "mismatch_pen",
                   "open_pen", "extend_pen", "endgap_pen", "max_homopolymer",
                   "downsample", "lowfreq"]
+
+
+# Models to represent
