@@ -15,12 +15,12 @@ def parse_tagset(pk):
         tagset.save()
         return "failed"
     
-    if file.size > 100000:
-        tagset.is_valid = False
-        tagset.validated = True
-        tagset.errors = "File to big"
-        tagset.save()
-        return "failed"
+    # if file.size > 100000:
+    #     tagset.is_valid = False
+    #     tagset.validated = True
+    #     tagset.errors = "File to big"
+    #     tagset.save()
+    #     return "failed"
 
     tag_len = 0
     errors = ""
