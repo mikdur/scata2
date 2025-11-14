@@ -95,8 +95,8 @@ class RefIterator():
 
 
 class ScataMethod(models.Model):
-    job = models.OneToOneField("scata2.ScataJob", on_delete=models.CASCADE,
-                               related_name="job_method")
+
+    job = models.OneToOneField("scata2.ScataJob", on_delete=models.CASCADE)
 
     seqs = None
 
@@ -118,4 +118,21 @@ class ScataMethod(models.Model):
     def run_job(cls, job):
         instance = cls.objects.get(job=job)
         instance.cluster()
+
+
+class ScataOTU(models.Model):
+    job = models.ForeignKey("scata2.ScataJob", on_delete=models.CASCADE)
+    name = models.CharField(max_length = 200, default="")
+    size = models.IntegerField(default = 0)
+
+
+class ScataRepSeq(models.Model):
+    otu = models.ForeignKey(ScataOTU, on_delete=models.CASCADE)
+    sequence = models.CharField(max_length = 2000, default = "")
+    length = models.IntegerField(default = 0)
+    frequency = models.IntegerField(default = 0)
+
+
+
+
 
