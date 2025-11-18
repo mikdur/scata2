@@ -1,7 +1,10 @@
+from io import BytesIO
 from django.db import models
+from django.core.files import File
 import gzip
 import pickle
 from Bio.SeqRecord import SeqRecord
+from scata2.storages import get_work_storage
 from scata2.backend.ReadHandler.filterseq import SeqDeTagger
 from scata2.backend.ReadHandler.qualseq import QualSeq
 from scata2.backend.ReadHandler.exceptions import ScataReadsError
@@ -100,10 +103,6 @@ class ScataMethod(models.Model):
 
     seqs = None
 
-    # def __init__(self, *args, **kwargs):
-    #     super(Method, self).__init__(args, kwargs)
-    #     self.seqs = SeqIterator(self.job.datasets, amplicon=self.job.amplicon)
-
     def get_seq_iterator(self):
         return SeqIterator(self.job.datasets, self.job.amplicon)
 
@@ -118,6 +117,56 @@ class ScataMethod(models.Model):
     def run_job(cls, job):
         instance = cls.objects.get(job=job)
         instance.cluster()
+
+# Models to represent chunk of sequences
+class ChunkFullException(Exception):
+    def __init__(self, error="File full", message="Chunk full"):
+        self.error = error
+        self.message = message
+        super().__init__()
+
+
+# Needs dereplication
+class ScataSequenceChunk(models.Model):
+    job = models.ForeignKey("scata2.ScataJob", on_delete=models.CASCADE)
+    length = models.IntegerField(default = 0)
+    num_sequences = models.IntegerField(default = 0)
+    file = models.FileField(upload_to = "scata/methods/scata/chunk/", null=False,
+                            storage=get_work_storage)
+
+    def __init__(self, *args, **kwargs):
+        self.sequences = {}
+        super().__init__(*args, **kwargs)
+
+    def __str__(self):
+        return "ScataSequenceChunk(job={}, l={}, n={})".format(self.job, self.length, self.num_sequences)
+
+    @classmethod
+    def new_chunk(cls, job, length, chunk_size=2000):
+        chunk = cls()
+        chunk.job = job
+        chunk.length = length
+        chunk.chunk_size = chunk_size
+        chunk.num_sequences = 0
+        return chunk
+
+    def add_sequence(self, id, sequence):
+        assert(len(sequence) == self.length)
+        self.num_sequences += 1
+        self.sequences[str(sequence)] = self.sequences.get(str(sequence), []) + [id]
+        if len(self.sequences) > self.chunk_size:
+            raise(ChunkFullException())
+
+
+    def save(self, **kwargs):
+        with BytesIO() as seq_file:
+            with gzip.open(seq_file, "wb") as gz:
+                pickle.dump(self.sequences, gz)
+            seq_file.seek(0)
+            name = "j{}s{}c{}".format(self.job.pk, self.length, self.num_sequences)
+            self.file = File(seq_file, name=name)
+            super().save(**kwargs)
+
 
 
 class ScataOTU(models.Model):
