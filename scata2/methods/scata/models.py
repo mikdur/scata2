@@ -1,5 +1,5 @@
 from django.db import models
-from scata2.methods.models import ScataMethod
+from scata2.methods.models import ScataMethod, ScataSequenceChunk, ChunkFullException
 from django.forms import ModelForm
 from django.core.validators import MinValueValidator, MaxValueValidator
 
@@ -63,7 +63,50 @@ class ScataScataMethod(ScataMethod):
 
     # Clustering method
     def cluster(self):
-        pass
+        print("SCATA Clustering {}".format(self))
+        self.job.status = "Preparing"
+        self.job.save()
+
+        seq_iter = self.get_seq_iterator()
+
+
+
+        id2name = {}
+        seqs = {}
+        n = 0
+
+        self.job.status = "Deduplicating 0/{}".format(len(seq_iter))
+        self.job.save()
+
+        for seq in seq_iter:
+            n += 1
+            if n % 10000 == 0:
+                self.job.status = "Deduplicating {}/{}".format(n, len(seq_iter))
+                self.job.save()
+                print("Deduplicating {}/{}".format(n, len(seq_iter)))
+            id = "s{}".format(n)
+            l = len(seq[1])
+            id2name[id] = seq[0]
+            chunk = seqs.get(l, ScataSequenceChunk.new_chunk(self.job, l))
+            try:
+                chunk.add_sequence(id, seq[1])
+            except ChunkFullException:
+                chunk.save()
+                old_chunk = chunk
+                chunk = None
+                chunk = ScataSequenceChunk.new_chunk(self.job, l)
+                assert(chunk != old_chunk)
+                chunk.add_sequence(id, seq[1])
+
+            seqs[l] = chunk
+
+        for seq in seqs.values():
+            seq.save()
+
+        # In cases whith non-zero gap-penalty, clustering can be optimised by
+        # only clustering sequences length difference less than
+        # gap penalty * sequence length of the longer sequence. We use
+        # global alignment, so length difference will always require a gap.
 
 
 class ScataScataMethodForm(ModelForm):
@@ -75,4 +118,3 @@ class ScataScataMethodForm(ModelForm):
                   "downsample", "lowfreq"]
 
 
-# Models to represent
