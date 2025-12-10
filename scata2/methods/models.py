@@ -131,6 +131,8 @@ class ScataSequenceChunk(models.Model):
     job = models.ForeignKey("scata2.ScataJob", on_delete=models.CASCADE)
     length = models.IntegerField(default = 0)
     num_sequences = models.IntegerField(default = 0)
+    num_uniques = models.IntegerField(default = 0)
+    errors = dict()
     file = models.FileField(upload_to = "scata/methods/scata/chunk/", null=False,
                             storage=get_work_storage)
 
@@ -139,7 +141,10 @@ class ScataSequenceChunk(models.Model):
         super().__init__(*args, **kwargs)
 
     def __str__(self):
-        return "ScataSequenceChunk(job={}, l={}, n={})".format(self.job, self.length, self.num_sequences)
+        return "ScataSequenceChunk(job={}, l={}, n={}, u={})".format(self.job, self.length, self.num_sequences, self.num_uniques)
+
+    def __len__(self):
+        return self.num_uniques
 
     @classmethod
     def new_chunk(cls, job, length, chunk_size=2000):
@@ -154,6 +159,7 @@ class ScataSequenceChunk(models.Model):
         assert(len(sequence) == self.length)
         self.num_sequences += 1
         self.sequences[str(sequence)] = self.sequences.get(str(sequence), []) + [id]
+        self.num_uniques = len(self.sequences)
         if len(self.sequences) > self.chunk_size:
             raise(ChunkFullException())
 
@@ -163,7 +169,7 @@ class ScataSequenceChunk(models.Model):
             with gzip.open(seq_file, "wb") as gz:
                 pickle.dump(self.sequences, gz)
             seq_file.seek(0)
-            name = "j{}s{}c{}".format(self.job.pk, self.length, self.num_sequences)
+            name = "j{}/s{}c{}".format(self.job.pk, self.length, self.num_sequences)
             self.file = File(seq_file, name=name)
             super().save(**kwargs)
 
