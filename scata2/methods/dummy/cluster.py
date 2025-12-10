@@ -3,7 +3,7 @@
 
 def do_cluster(instance):
     print("Clustering {}".format(instance))
-    instance.job.status = "Clustering"
+    instance.job.status = "Preparing"
     instance.job.save()
     instance.mean_len = 0
     instance.num_seqs = 0
@@ -11,6 +11,9 @@ def do_cluster(instance):
     seq_iter = instance.get_seq_iterator()
 
     clusters = dict()
+
+    instance.job.status = "Deduplicating"
+    instance.job.save()
 
     for seq in seq_iter:
         instance.mean_len += len(seq[1])
