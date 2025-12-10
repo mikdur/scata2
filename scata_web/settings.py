@@ -177,8 +177,8 @@ Q_CLUSTER = {
     'name': 'scata2',
     'workers': 8,
     'recycle': 100,
-    'timeout': 3600,
-    'retry': 3780,
+    'timeout': 3600 * 5,
+    'retry': 3600 * 5 + 60,
     'compress': True,
     'save_limit': 250,
     'queue_limit': 500,
@@ -197,6 +197,7 @@ Q_CLUSTER = {
         },
     }
 }
+
 
 try:
     from .local import *
