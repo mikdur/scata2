@@ -1,4 +1,8 @@
+import random
+from time import sleep
 from django.db import models
+
+
 from scata2.methods.models import ScataMethod, ScataSequenceChunk, ChunkFullException
 from django.forms import ModelForm
 from django.core.validators import MinValueValidator, MaxValueValidator
@@ -111,6 +115,9 @@ class ScataScataMethod(ScataMethod):
             for seq in seqs.values():
                 seq.save()
 
+        self.job.status = "Starting clustering"
+        self.job.save()
+
         # In cases whith non-zero gap-penalty, clustering can be optimised by
         # only clustering sequences length difference less than
         # gap penalty * sequence length of the longer sequence. We use
@@ -119,69 +126,64 @@ class ScataScataMethod(ScataMethod):
         # TODO implement the above. This is a plain all against all
         # implementation.
 
+        task_group = "scata_cluster_{}".format(self.job.pk)
+        tasks = []
+
+        # Collect set of chunk groups of similar sequence counts
         chunks = list(ScataSequenceChunk.objects.filter(job=self.job).order_by("-length"))
-
-        def pop_chunks_n_seqs(_chunks, _n):
-            chunks_n = []
-            c=0
-            while True:
-                try:
-                    chunks_n.append(_chunks.pop(0))
-                    c += len(chunks_n[-1])
-                except IndexError:
-                    return chunks_n
-                if c > _n:
-                    return chunks_n
-
-        chunk_size = 100
+        group_size = 100
+        chunk_groups = []
+        group = []
+        c = 0
         while True:
-            query = pop_chunks_n_seqs(chunks, chunk_size)
-            if len(query) == 0:
-                break
-
-            #print("cluster_chunk self job={} {} {}".format(self.job.pk, len(query), len(query)))
-            tasks.append(q2.async_task(ScataScataMethod.cluster_chunk,
-                                       [q.pk for q in query],
-                                       [q.pk for q in query],
-                                       group="scata_cluster_{}".format(self.job.pk),
-                                       task_name="cluster_chunk job={} {} {}".\
-                                        format(self.job.pk, len(query), len(query))
-                                       ))
-            target = []
-            c = 0
-            if len(chunks) == 0:
-                break
-            for chunk in chunks:
+            try:
+                chunk = chunks.pop(0)
                 c += len(chunk)
-                target.append(chunk)
-                if c > chunk_size:
-                    #print("cluster_chunk job={} {} {}".format(self.job.pk, len(query), len(target)))
-                    tasks.append(q2.async_task(ScataScataMethod.cluster_chunk,
-                                               [q.pk for q in query],
-                                               [t.pk for t in target],
-                                               group="scata_cluster_{}".format(self.job.pk),
-                                               task_name="cluster_chunk job={} {} {}".\
-                                                format(self.job.pk, len(query), len(target))
-                                               ))
-                    target = []
-                    c=0
-            # Cluster any leftovers
-            if len(target) > 0:
-                print("cluster_chunk job={} {} {}".format(self.job.pk, len(query), len(target)))
+                group.append(chunk.pk)
+            except IndexError:
+                chunk_groups.append(group)
+                break
+            if c > group_size:
+                chunk_groups.append(group)
+                group = []
+                c = 0
+
+        print(chunk_groups)
+        for q in range(len(chunk_groups)):
+            for t in range(q, len(chunk_groups)):
                 tasks.append(q2.async_task(ScataScataMethod.cluster_chunk,
-                                           [q.pk for q in query],
-                                           [t.pk for t in target],
-                                           group = "scata_cluster_{}".format(self.job.pk),
-                                           task_name="cluster_chunk job={} {} {}".\
-                                            format(self.job.pk, len(query), len(target))
+                                           chunk_groups[q], chunk_groups[t],
+                                           group=task_group,
+                                           task_name="cluster_chunk self job={} {} {}". \
+                                           format(self.job.pk,
+                                                  len(chunk_groups[q]),
+                                                  len(chunk_groups[t]))
                                            ))
 
         # Count groups while waiting.
+        while True:
+            success_count = q2.count_group(task_group)
+            fail_count = q2.count_group(task_group, failures=True)
+            total_count = success_count + fail_count
 
+            self.job.status = "Clustering {}/{}".format(total_count,
+                                              len(tasks))
+            self.job.save()
+
+
+            if total_count == len(tasks):
+                break
+            sleep(2)
+
+        self.job.status = "Clustering done."
+        self.job.save()
 
     @classmethod
     def cluster_chunk(cls, query, target):
-        print("running chunk {} {}".format(query, target))
+        query = ScataSequenceChunk.objects.in_bulk(query)
+        target = ScataSequenceChunk.objects.in_bulk(target)
+
+
 
 
 
