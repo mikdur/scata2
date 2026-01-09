@@ -4,6 +4,7 @@ from django.core.files import File
 import gzip
 import pickle
 from Bio.SeqRecord import SeqRecord
+from Bio.Seq import Seq
 from scata2.storages import get_work_storage
 from scata2.backend.ReadHandler.filterseq import SeqDeTagger
 from scata2.backend.ReadHandler.qualseq import QualSeq
@@ -173,7 +174,16 @@ class ScataSequenceChunk(models.Model):
             self.file = File(seq_file, name=name)
             super().save(**kwargs)
 
+    def get_uniseqs(self):
+        if len(self.sequences) == 0:
+            self.sequences = {}
+            with self.file.open(mode="rb") as f:
+                with gzip.open(f, mode="rb") as gz:
+                    self.sequences = pickle.load(gz)
 
+        return [SeqRecord( seq = Seq(a[1]), id="s{}_{}".format(self.pk, a[0]),
+                           description="")
+                for a in enumerate(self.sequences.keys())]
 
 class ScataOTU(models.Model):
     job = models.ForeignKey("scata2.ScataJob", on_delete=models.CASCADE)
