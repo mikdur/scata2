@@ -172,6 +172,12 @@ STORAGES = {
     },
 }
 
+# Scratch directory used when writing external files that will be used
+# as arguments to external programs, eg. vsearch
+
+SCRATCH_DIR = os.path.join(BASE_DIR, "scata_scratch")
+VSEARCH_COMMAND = "/opt/homebrew/bin/vsearch"
+
 # django-q2 settings
 Q_CLUSTER = {
     'name': 'scata2',

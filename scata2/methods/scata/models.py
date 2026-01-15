@@ -1,8 +1,17 @@
+import gzip
+import os
+import pickle
 import random
+import subprocess
+from io import BytesIO
 from time import sleep
+
+from django.core.files import File
 from django.db import models
+from django.conf import settings
+from Bio import SeqIO
 
-
+from scata2.storages import get_work_storage
 from scata2.methods.models import ScataMethod, ScataSequenceChunk, ChunkFullException
 from django.forms import ModelForm
 from django.core.validators import MinValueValidator, MaxValueValidator
@@ -131,7 +140,7 @@ class ScataScataMethod(ScataMethod):
 
         # Collect set of chunk groups of similar sequence counts
         chunks = list(ScataSequenceChunk.objects.filter(job=self.job).order_by("-length"))
-        group_size = 100
+        group_size = 4000
         chunk_groups = []
         group = []
         c = 0
@@ -149,9 +158,12 @@ class ScataScataMethod(ScataMethod):
                 c = 0
 
         print(chunk_groups)
+        task_num = 0
         for q in range(len(chunk_groups)):
             for t in range(q, len(chunk_groups)):
+                task_num += 1
                 tasks.append(q2.async_task(ScataScataMethod.cluster_chunk,
+                                           self.job.pk, task_num,
                                            chunk_groups[q], chunk_groups[t],
                                            group=task_group,
                                            task_name="cluster_chunk self job={} {} {}". \
@@ -179,12 +191,139 @@ class ScataScataMethod(ScataMethod):
         self.job.save()
 
     @classmethod
-    def cluster_chunk(cls, query, target):
+    def cluster_chunk(cls, job_pk, task_num,
+                      query, target):
+        cls_instance = cls.objects.get(job=job_pk)
+
+        target_file = os.path.join(settings.SCRATCH_DIR,
+                                   "t_{}_{}.fasta".format(job_pk, task_num))
+        query_file = os.path.join(settings.SCRATCH_DIR,
+                                   "q_{}_{}.fasta".format(job_pk, task_num))
         query = ScataSequenceChunk.objects.in_bulk(query)
         target = ScataSequenceChunk.objects.in_bulk(target)
 
+        query_records = [r for q in query.values() for r in q.get_uniseqs()]
+        target_records = [r for t in target.values() for r in t.get_uniseqs()]
+
+        SeqIO.write(target_records, target_file, "fasta")
+        SeqIO.write(query_records, query_file, "fasta")
+
+        vsearch_fields = { "query": str,
+                           "target": str,
+                           "id0": float,
+                           "qilo": lambda a: int(a) - 1,
+                           "qihi": lambda a: int(a) - 1,
+                           "tilo": lambda a: int(a) - 1,
+                           "tihi": lambda a: int(a) - 1,
+                           "ql": int,
+                           "tl": int,
+                           "tcov": lambda a: float(a) / 100.0,
+                           "qcov": lambda a: float(a) / 100.0,
+                           "mism": int,
+                           "opens": int,
+                           "exts": int,
+                           "pairs": int,
+                           "pv": int,
+                           "alnlen": int, }
+
+        process = subprocess.Popen([settings.VSEARCH_COMMAND,
+                          "--threads", "1",
+                          "--usearch_global", query_file,
+                          "--db", target_file,
+                          "--userout", "-",
+                          "--id", "0.95",
+                          "--userfields", "+".join(vsearch_fields.keys()),
+                          ], stdout=subprocess.PIPE, text=True)
+
+        vsearch_result = process.communicate()[0]
+
+        clusters = { }
+
+        for line in vsearch_result.splitlines():
+            hit = {a[0]: vsearch_fields[a[0]](a[1]) for a in zip(vsearch_fields.keys(), line.split("\t"))}
+
+            # Ignore self
+            if hit["query"] == hit["target"]:
+                continue
+
+            # Check alignment coverage
+            if min(hit["tcov"], hit["qcov"]) < cls_instance.min_alignment:
+                continue
+
+            # Divergent sites
+            distance = (hit["pairs"] - hit["pv"]) * cls_instance.mismatch_pen
+
+            # Gaps
+            distance += hit["opens"] * cls_instance.open_pen
+            distance += hit["exts"] * cls_instance.extend_pen
+
+            distance = distance / float(max(hit["qihi"] - hit["qilo"], hit["tihi"] - hit["tilo"]) + 1)
+
+            # Check if within clusterin distance
+            if distance > cls_instance.distance:
+                continue
+
+            # Case 1, both query and target in cluster, this joins
+            # two already existing clusters.
+            if hit["query"] in clusters and hit["target"] in clusters:
+                cq = clusters[hit["query"]]
+                ct = clusters[hit["target"]]
+
+                if cq == ct:
+                    continue # Same cluster, both already in
+
+                # Merge clusters and set new cluster for all members
+                nc = cq | ct
+                for id in nc:
+                    clusters[id] = nc
+
+            elif hit["query"] in clusters:
+                clusters[hit["query"]].add(hit["target"])
+                clusters[hit["target"]] = clusters[hit["query"]]
+
+            elif hit["target"] in clusters:
+                clusters[hit["target"]].add(hit["query"])
+                clusters[hit["query"]] = clusters[hit["target"]]
+
+            else:
+                clusters[hit["query"]] = { hit["target"], hit["query"] }
+                clusters[hit["target"]] = clusters[hit["query"]]
+
+        # Merge to unique list of clusters
+        unique_clusters = []
+        for cluster in clusters.values():
+            if cluster not in unique_clusters:
+                unique_clusters.append(cluster)
+
+        if len(unique_clusters) > 0:
+            ScataScataSubCluster.make_subcluster(unique_clusters, cls_instance.job)
 
 
+class ScataScataSubCluster(models.Model):
+    job = models.ForeignKey("scata2.ScataJob", on_delete=models.CASCADE)
+    file = models.FileField(upload_to="scata/methods/scata/subcluster/", null=True, blank=True,
+                            storage=get_work_storage)
+    level = models.PositiveIntegerField(default=0)
+
+    clusters = []
+
+    @classmethod
+    def make_subcluster(cls, clusters, job, level=0):
+        cls_instance = cls()
+        cls_instance.clusters = clusters
+        cls_instance.job = job
+        cls_instance.level = level
+        cls_instance.save()
+
+    def save(self, **kwargs):
+        super().save(**kwargs) # Create db object to get pk
+        with BytesIO() as seq_file:
+            with gzip.open(seq_file, "wb") as gz:
+                pickle.dump(self.clusters, gz)
+            seq_file.seek(0)
+            name = "j{}/l{}c{}".format(self.job.pk, self.level, self.pk)
+            self.file = File(seq_file, name=name)
+            super().save(**kwargs)
 
 
 class ScataScataMethodForm(ModelForm):
