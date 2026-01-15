@@ -148,7 +148,7 @@ class ScataSequenceChunk(models.Model):
         return self.num_uniques
 
     @classmethod
-    def new_chunk(cls, job, length, chunk_size=2000):
+    def new_chunk(cls, job, length, chunk_size=4000):
         chunk = cls()
         chunk.job = job
         chunk.length = length
