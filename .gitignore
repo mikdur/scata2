@@ -1,5 +1,6 @@
 .idea
 files
+scata_scratch
 .vscode
 django_cache/
 *.djcache
