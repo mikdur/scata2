@@ -10,3 +10,5 @@ scipy==1.15.3
 sentry-sdk
 django-q2[sentry]
 numba
+psycopg
+psycopg_binary
