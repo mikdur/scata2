@@ -325,6 +325,13 @@ class DataSetTagsPCAJSONView(JSONResponseMixin, DataSetDetailView):
 class JobListView(ListOwnedView):
     model = ScataJob
 
+class JobJsonStatusListView(JobListView):
+
+    def get(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        data = {"status_{}".format(q.pk) : q.status for q in queryset}
+        return JsonResponse(data, status=200)
+
 
 class JobCreateView(FilteredCreateView):
     model = ScataJob

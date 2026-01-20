@@ -20,7 +20,7 @@
             <td class="{{ cell_class }}">
                 {{ job.method }}
             </td>
-            <td class="{{ cell_class }}">
+            <td id="status_{{ job.id }}" class="{{ cell_class }}">
                 {{ job.status }}
             </td>
             <td class="{{ cell_class }}">
@@ -35,3 +35,21 @@
     {% endfor %}
 {% endblock %}
 {% block add_link %}<a class="{{ button_class }}" href="{% url "job-add" %}">New job</a>{% endblock %}
+
+{% block extra_js %}
+    <script type="text/javascript">
+    $(document).ready(
+            function() {
+                setInterval(function() {
+                    $.ajax({
+                            url: '{% url "job-status-list" %}',
+                            context: document.body
+                        }).done(function(data) {
+                            $.each(data, function( id, msg ) {
+                                $("#" + id).text(msg);
+                            })
+                    });
+                }, 3000);
+            });
+    </script>
+{% endblock %}
