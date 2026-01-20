@@ -58,6 +58,10 @@ def check_dataset(pk):
         try:
             total_reads += 1
             if total_reads % 10000 == 0:
+                dataset.refresh_from_db()
+                if dataset.deleted:
+                    print("Dataset {} deleted".format(dataset.pk))
+                    return
                 dataset.progress = ("Filtering, {t} reads done. {g} reads " +
                                     "accepted").format(g=good_reads,
                                                        t=total_reads)
@@ -101,6 +105,10 @@ def check_dataset(pk):
         except StopIteration:
             break
 
+    dataset.refresh_from_db()
+    if dataset.deleted:
+        print("Dataset {} deleted".format(dataset.pk))
+        return
     dataset.progress = "Finalising, {g}/{t} good reads".format(g=good_reads,
                                                                t=total_reads)
     dataset.save()
@@ -128,6 +136,10 @@ def check_dataset(pk):
     dataset.validated = True
     if good_reads > 0:
         dataset.is_valid = True
+    dataset.refresh_from_db()
+    if dataset.deleted:
+        print("Dataset {} deleted".format(dataset.pk))
+        return
     dataset.progress = "Ready, {g}/{t} good reads".format(g=good_reads,
                                                           t=total_reads)
     dataset.save()
