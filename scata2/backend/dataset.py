@@ -136,10 +136,6 @@ def check_dataset(pk):
     dataset.validated = True
     if good_reads > 0:
         dataset.is_valid = True
-    dataset.refresh_from_db()
-    if dataset.deleted:
-        print("Dataset {} deleted".format(dataset.pk))
-        return
     dataset.progress = "Ready, {g}/{t} good reads".format(g=good_reads,
                                                           t=total_reads)
     dataset.save()
