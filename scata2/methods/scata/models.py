@@ -206,6 +206,31 @@ class ScataScataMethod(ScataMethod):
         self.job.status = "Clustering done, starting merge."
         self.job.save()
 
+        subclusters = ScataScataSubCluster.objects.filter(job=self.job, level=0)
+
+        if len(subclusters) == 0:
+            self.job.status = "No clusters formed."
+            self.job.save()
+            return
+
+        clusters = [ ]
+
+        pre_merge_count = 0
+        for subcluster in subclusters:
+            for sc in subcluster.get():
+                is_added = False
+                pre_merge_count += 1
+                for (i,c) in enumerate(clusters):
+                    if len(sc & c):
+                        clusters[i] |= sc
+                        is_added = True
+                        break
+                if not is_added:
+                    clusters.append(sc)
+
+        print("{} pre-clusters merged into {} clusters".format(pre_merge_count,len(clusters)))
+
+
     @classmethod
     def cluster_chunk(cls, job_pk, task_num,
                       query, target):
@@ -253,9 +278,20 @@ class ScataScataMethod(ScataMethod):
                           "--userout", "-",
                           "--id", "0.95",
                           "--userfields", "+".join(vsearch_fields.keys()),
-                          ], stdout=subprocess.PIPE, text=True)
+                          ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
-        vsearch_result = process.communicate()[0]
+
+
+        vsearch_result, vsearch_errors = process.communicate()
+
+        if process.returncode != 0:
+            raise RuntimeError("VSEARCH_COMMAND exited with return code {}\n\nCommand output:\n\n{}".format(process.returncode, vsearch_errors))
+
+        try:
+            os.remove(target_file)
+            os.remove(query_file)
+        except OSError:
+            pass
 
         clusters = { }
 
