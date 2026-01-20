@@ -165,7 +165,7 @@ class ScataScataMethod(ScataMethod):
                 group = []
                 c = 0
 
-        print(chunk_groups)
+
         task_num = 0
         for q in range(len(chunk_groups)):
             for t in range(q, len(chunk_groups)):
