@@ -345,6 +345,12 @@ class ScataScataSubCluster(models.Model):
             self.file = File(seq_file, name=name)
             super().save(**kwargs)
 
+    def get(self):
+        if len(self.clusters) == 0:
+            with self.file.open(mode="rb") as f:
+                with gzip.open(f, mode="rb") as gz:
+                    self.clusters = pickle.load(gz)
+        return self.clusters
 
 class ScataScataMethodForm(ModelForm):
 
