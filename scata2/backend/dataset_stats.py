@@ -1,7 +1,5 @@
 import gzip,pickle
-from io import BytesIO
-import time
-from django.core.files import File
+
 from scata2.models import ScataDataset, ScataTagStat
 
 from sklearn.feature_extraction import FeatureHasher
@@ -17,6 +15,10 @@ KMER_MIN_SEQS=200
 def dataset_stats(pk):
     dataset = ScataDataset.objects.get(pk=pk)
 
+
+    if dataset.deleted:
+        print("Dataset {} deleted".format(dataset.pk))
+        return
     # Dictionary with all reads, with id as key
     #
     # {"read_id" : "read sequence"}
@@ -49,7 +51,11 @@ def dataset_stats(pk):
 
     # Calculate stats per tag
     for t in tag_list:
-       
+        dataset.refresh_from_db()
+        if dataset.deleted:
+            print("Dataset {} deleted".format(dataset.pk))
+            return
+
         tag = ScataTagStat()
         tag.dataset=dataset
         tag.count = tags[t]['cnt']
@@ -94,16 +100,31 @@ def dataset_stats(pk):
             kmer_list.append(kmers)
             pca_objects.append(tag)
 
-    
+    dataset.refresh_from_db()
+    if dataset.deleted:
+        print("Dataset {} deleted".format(dataset.pk))
+        return
+
     hasher = FeatureHasher(n_features=4**KMER, input_type="dict")
 
     f = hasher.transform(kmer_list)
     f = preprocessing.normalize(f, copy=False)
     pca = PCA(n_components=3)
-    pca.fit(f)
+    try:
+        pca.fit(f)
+    except ValueError:
+        dataset.refresh_from_db()
+        if dataset.deleted:
+            print("Dataset {} deleted".format(dataset.pk))
 
-    pca.explained_variance_ratio_
+        return
+
     eigen_vectors = pca.transform(f)
+
+    dataset.refresh_from_db()
+    if dataset.deleted:
+        print("Dataset {} deleted".format(dataset.pk))
+        return
 
     dataset.pc1_exp=float(pca.explained_variance_ratio_[0])
     dataset.pc2_exp=float(pca.explained_variance_ratio_[1])
