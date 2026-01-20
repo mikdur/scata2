@@ -213,7 +213,8 @@ class SeqDeTagger:
                 if q:
                     q.quals.reverse()
                 seq_str = str(seq)
-                seq_ar = np.array([trans_table[x] if not x == 'N' else 0 for x in str(seq).upper() if x in trans_table])
+                seq_ar = np.array([trans_table[x] if not x == 'N' else 0 for x in str(seq).upper() if x in trans_table],
+                                  dtype=int)
 
                 p5_pos = find_primer_pos(seq_ar, self.p5_ar, int(self.p5s))
 
