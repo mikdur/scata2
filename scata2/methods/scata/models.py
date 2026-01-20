@@ -90,6 +90,10 @@ class ScataScataMethod(ScataMethod):
         seqs = {}
         n = 0
 
+        self.job.refresh_from_db()
+        if self.job.deleted:
+            print("Job {} deleted".format(self.pk))
+            return
         self.job.status = "Deduplicating 0/{}".format(len(seq_iter))
         self.job.save()
 
@@ -102,6 +106,10 @@ class ScataScataMethod(ScataMethod):
             for seq in seq_iter:
                 n += 1
                 if n % 10000 == 0:
+                    self.job.refresh_from_db()
+                    if self.job.deleted:
+                        print("Job {} deleted".format(self.pk))
+                        return
                     self.job.status = "Deduplicating {}/{}".format(n, len(seq_iter))
                     self.job.save()
                     print("Deduplicating {}/{}".format(n, len(seq_iter)))
@@ -178,6 +186,10 @@ class ScataScataMethod(ScataMethod):
             fail_count = q2.count_group(task_group, failures=True)
             total_count = success_count + fail_count
 
+            self.job.refresh_from_db()
+            if self.job.deleted:
+                print("Job {} deleted".format(self.pk))
+                return
             self.job.status = "Clustering {}/{}".format(total_count,
                                               len(tasks))
             self.job.save()
@@ -187,13 +199,21 @@ class ScataScataMethod(ScataMethod):
                 break
             sleep(2)
 
-        self.job.status = "Clustering done."
+        self.job.refresh_from_db()
+        if self.job.deleted:
+            print("Job {} deleted".format(self.pk))
+            return
+        self.job.status = "Clustering done, starting merge."
         self.job.save()
 
     @classmethod
     def cluster_chunk(cls, job_pk, task_num,
                       query, target):
         cls_instance = cls.objects.get(job=job_pk)
+
+        if cls_instance.job.deleted:
+            print("cluster_chunk(): Job {} deleted".format(cls_instance.job.pk))
+            return
 
         target_file = os.path.join(settings.SCRATCH_DIR,
                                    "t_{}_{}.fasta".format(job_pk, task_num))
