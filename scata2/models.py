@@ -337,7 +337,7 @@ class ScataDataset(ScataModel):
 
 class ScataErrorType(models.Model):
     dataset = models.ForeignKey(ScataDataset, on_delete=models.CASCADE)
-    error = models.CharField(max_length=10)
+    error = models.CharField(max_length=100)
     message = models.CharField(max_length=100)
     count = models.IntegerField()
 
@@ -389,7 +389,7 @@ class ScataJob(ScataModel):
 
     # Status and internal fields
     status = models.CharField("Status", default="Pending",
-                              editable=False, max_length=10)
+                              editable=False, max_length=250)
 
     def get_absolute_url(self):
         return reverse("job-list")
