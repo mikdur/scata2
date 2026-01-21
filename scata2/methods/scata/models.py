@@ -198,6 +198,8 @@ class ScataScataMethod(ScataMethod):
             if total_count == len(tasks):
                 break
             sleep(2)
+        # Delete results objects, they are not used
+        q2.delete_group(task_group)
 
         self.job.refresh_from_db()
         if self.job.deleted:
