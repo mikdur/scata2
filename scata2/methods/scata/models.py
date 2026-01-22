@@ -79,6 +79,14 @@ class ScataScataMethod(ScataMethod):
                                 validators=[MinValueValidator(0, "Min 0"),
                                             MaxValueValidator(100, "Max 100")])
 
+
+    # Metrics
+    total_size = models.IntegerField("Total size number of reads", editable=False,
+                                     default=0, null=False, blank=False)
+    num_genotypes = models.IntegerField("Number of genotypes", editable=False,
+                                        default=0, null=False, blank=False)
+
+
     # Clustering method
     def cluster(self):
         print("SCATA Clustering {}".format(self))
