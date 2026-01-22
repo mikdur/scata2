@@ -124,6 +124,7 @@ class ScataScataMethod(ScataMethod):
                     self.job.status = "Deduplicating {}/{}".format(n, len(seq_iter))
                     self.job.save()
                     print("Deduplicating {}/{}".format(n, len(seq_iter)))
+                self.total_size += 1
                 id = "s{}".format(n)
                 l = len(seq[1])
                 id2name[id] = seq[0]
@@ -132,6 +133,7 @@ class ScataScataMethod(ScataMethod):
                     chunk.add_sequence(id, seq[1])
                 except ChunkFullException:
                     chunk.save()
+                    self.num_genotypes += chunk.num_uniques
                     old_chunk = chunk
                     chunk = None
                     chunk = ScataSequenceChunk.new_chunk(self.job, l)
@@ -141,6 +143,7 @@ class ScataScataMethod(ScataMethod):
                 seqs[l] = chunk
 
             for seq in seqs.values():
+                self.num_genotypes += seq.num_uniques
                 seq.save()
 
         self.job.status = "Starting clustering"
