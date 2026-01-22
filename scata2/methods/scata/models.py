@@ -170,7 +170,7 @@ class ScataScataMethod(ScataMethod):
             try:
                 chunk = chunks.pop(0)
                 c += len(chunk)
-                group.append(chunk.pk)
+                group.append(chunk)
             except IndexError:
                 chunk_groups.append(group)
                 break
@@ -183,10 +183,22 @@ class ScataScataMethod(ScataMethod):
         task_num = 0
         for q in range(len(chunk_groups)):
             for t in range(q, len(chunk_groups)):
+                long = chunk_groups[q][-1].length
+                short = chunk_groups[t][0].length
+                length_diff = long - short
+                gap_score = length_diff * self.extend_pen + self.open_pen
+
+                # No need to compare if distance due to length
+                # difference is more than accepted distane.
+
+                if float(gap_score) / float(long) > self.distance:
+                    break
+
                 task_num += 1
                 tasks.append(q2.async_task(ScataScataMethod.cluster_chunk,
                                            self.job.pk, task_num,
-                                           chunk_groups[q], chunk_groups[t],
+                                           [a.pk for a in chunk_groups[q]],
+                                           [a.pk for a in chunk_groups[t]],
                                            group=task_group,
                                            task_name="cluster_chunk self job={} {} {}". \
                                            format(self.job.pk,
