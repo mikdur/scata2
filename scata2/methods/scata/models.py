@@ -296,12 +296,14 @@ class ScataScataMethod(ScataMethod):
             pass
 
         clusters = { }
+        potential_singletons = set()
 
         for line in vsearch_result.splitlines():
             hit = {a[0]: vsearch_fields[a[0]](a[1]) for a in zip(vsearch_fields.keys(), line.split("\t"))}
 
             # Ignore self
             if hit["query"] == hit["target"]:
+                potential_singletons.add(hit["query"])
                 continue
 
             # Check alignment coverage
@@ -347,11 +349,15 @@ class ScataScataMethod(ScataMethod):
                 clusters[hit["query"]] = { hit["target"], hit["query"] }
                 clusters[hit["target"]] = clusters[hit["query"]]
 
+        potential_singletons = potential_singletons - clusters.keys()
+
         # Merge to unique list of clusters
         unique_clusters = []
         for cluster in clusters.values():
             if cluster not in unique_clusters:
                 unique_clusters.append(cluster)
+
+        unique_clusters = unique_clusters + [ { s } for s in potential_singletons ]
 
         if len(unique_clusters) > 0:
             ScataScataSubCluster.make_subcluster(unique_clusters, cls_instance.job)
