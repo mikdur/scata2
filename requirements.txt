@@ -12,3 +12,4 @@ django-q2[sentry]
 numba
 psycopg
 psycopg_binary
+django-cleanup
