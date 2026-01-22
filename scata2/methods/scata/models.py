@@ -303,9 +303,15 @@ class ScataScataMethod(ScataMethod):
                            "alnlen": int, }
 
         process = subprocess.Popen([settings.VSEARCH_COMMAND,
+                                    "--mismatch", "{}".format(cls_instance.mismatch_pen * -1),
+                                    "--gapopen", "{}I/{}E".format(cls_instance.open_pen,
+                                                                  cls_instance.open_pen * cls_instance.endgap_pen),
+                                    "--gapext", "{}I/{}E".format(cls_instance.extend_pen,
+                                                                  cls_instance.extend_pen * cls_instance.endgap_pen),
+                                    "--strand", "plus",
                                     "--threads", "1",
                                     "--maxaccepts", "0",
-                                    "--maxrejects", "0",
+                                    "--maxrejects", "100",
                                     "--usearch_global", query_file,
                                     "--db", target_file,
                                     "--userout", "-",
