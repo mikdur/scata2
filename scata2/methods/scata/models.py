@@ -256,7 +256,8 @@ class ScataScataMethod(ScataMethod):
                 if not is_added:
                     clusters.append(sc)
 
-        print("{} pre-clusters merged into {} clusters".format(pre_merge_count,len(clusters)))
+        print("{} pre-clusters merged into {} clusters.\n{} genotypes".format(pre_merge_count,len(clusters),
+                                                                             self.num_genotypes))
 
         # Sort and save pre clusters by size to make available
         # to subtasks
