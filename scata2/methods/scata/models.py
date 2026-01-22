@@ -20,6 +20,9 @@ import django_q.tasks as q2
 
 
 class ScataScataMethod(ScataMethod):
+    pre_clusters = models.FileField("Pre clusters", null=True, blank=True,
+                                    upload_to="scata/methods/scata/precluster/",
+                                    storage=get_work_storage)
     distance = models.FloatField("Clustering distance 0.001 < x < 0.10",
                                  null=False, blank=False, default=0.015,
                                  validators=[MinValueValidator(0.001,
@@ -231,6 +234,21 @@ class ScataScataMethod(ScataMethod):
                     clusters.append(sc)
 
         print("{} pre-clusters merged into {} clusters".format(pre_merge_count,len(clusters)))
+
+        # Sort and save pre clusters by size to make available
+        # to subtasks
+
+        clusters.sort(key=lambda a: len(a), reverse=True)
+
+        with BytesIO() as cluster_file:
+            with gzip.open(cluster_file, "wb") as gz:
+                pickle.dump(clusters, gz)
+            cluster_file.seek(0)
+            name = "j{}/preclusters".format(self.pk)
+            self.pre_clusters = File(cluster_file, name=name)
+            self.save()
+
+
 
 
     @classmethod
