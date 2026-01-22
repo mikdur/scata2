@@ -29,7 +29,7 @@ class ScataScataMethod(ScataMethod):
                                                                "Min 0.001"),
                                              MaxValueValidator(0.10,
                                                                "Max 0.10")])
-    min_alignment = models.IntegerField("Minimum alignment 0.5 < x < 1.0. Set to"
+    min_alignment = models.FloatField("Minimum alignment 0.5 < x < 1.0. Set to"
                                       " 1.0 to force global clustering (if all"
                                       " references are extracted amplicons)",
                                       null=False,
