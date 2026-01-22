@@ -323,7 +323,7 @@ class ScataScataMethod(ScataMethod):
                                                                   cls_instance.extend_pen * cls_instance.endgap_pen),
                                     "--strand", "plus",
                                     "--threads", "1",
-                                    "--maxaccepts", "0",
+                                    "--maxaccepts", "100",
                                     "--maxrejects", "100",
                                     "--usearch_global", query_file,
                                     "--db", target_file,
