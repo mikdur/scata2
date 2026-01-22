@@ -292,13 +292,15 @@ class ScataScataMethod(ScataMethod):
                            "alnlen": int, }
 
         process = subprocess.Popen([settings.VSEARCH_COMMAND,
-                          "--threads", "1",
-                          "--usearch_global", query_file,
-                          "--db", target_file,
-                          "--userout", "-",
-                          "--id", "0.95",
-                          "--userfields", "+".join(vsearch_fields.keys()),
-                          ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+                                    "--threads", "1",
+                                    "--maxaccepts", "0",
+                                    "--maxrejects", "0",
+                                    "--usearch_global", query_file,
+                                    "--db", target_file,
+                                    "--userout", "-",
+                                    "--id", "{}".format(1.0 - float(cls_instance.distance) - 0.01),
+                                    "--userfields", "+".join(vsearch_fields.keys()),
+                                    ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
 
 
