@@ -391,6 +391,8 @@ class ScataJob(ScataModel):
     # Status and internal fields
     status = models.CharField("Status", default="Pending",
                               editable=False, max_length=250)
+    completed = models.BooleanField("Process completed", default=False, editable=False)
+    completed_date = models.DateTimeField("Completed date", null=True,)
 
     def get_absolute_url(self):
         return reverse("job-list")

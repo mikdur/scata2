@@ -1,3 +1,6 @@
+from datetime import timedelta, datetime
+from zoneinfo import ZoneInfo
+
 from django.shortcuts import render
 from django.urls import reverse_lazy
 from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
@@ -291,8 +294,7 @@ class DataSetTagsCSVView(CSVResponseMixin, DataSetDetailView):
         data = context['tags'].order_by("count").values().values()
         columns = ['tag', 'count'] + \
             sorted(list(set(data.first().keys()) -
-                        set(['id', 'dataset_id', 'tag', 'count',
-                             "min_gc", "max_gc"])))
+                        {'id', 'dataset_id', 'tag', 'count', "min_gc", "max_gc"}))
         return [columns] + \
             [[q[b] for b in columns] for q in data]
 
@@ -328,7 +330,9 @@ class JobListView(ListOwnedView):
 class JobJsonStatusListView(JobListView):
 
     def get(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
+        queryset = self.get_queryset().filter(Q(completed=False) |
+                                              Q(completed_date__gte=(datetime.now(ZoneInfo("Europe/Stockholm")) -
+                                                                     timedelta(days=1))))
         data = {"status_{}".format(q.pk) : q.status for q in queryset}
         return JsonResponse(data, status=200)
 
