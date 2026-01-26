@@ -229,6 +229,8 @@ class ScataRefsetErrorType(models.Model):
 #
 
 class ScataDataset(ScataModel):
+    short_name = models.CharField("Short name (used as label in output)",
+                                  null=False, default="",)
     amplicon = models.ForeignKey(ScataAmplicon, null=True, blank=True,
                                  on_delete=models.PROTECT,
                                  verbose_name="Amplicon for filtering")
