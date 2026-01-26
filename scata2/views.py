@@ -257,7 +257,7 @@ class DataSetListView(ListOwnedView):
 
 class DataSetCreateView(FilteredCreateView):
     model = ScataDataset
-    fields = ["name", "description", "amplicon", "min_qual", "mean_qual",
+    fields = ["name", "short_name", "description", "amplicon", "min_qual", "mean_qual",
               "filter_method", "file_types", "file1", "file2",
               "kmer_size", "kmer_hsp_count", "kmer_shared"]
 
