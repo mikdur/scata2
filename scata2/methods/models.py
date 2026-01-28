@@ -178,16 +178,24 @@ class ScataSequenceChunk(models.Model):
             self.file = File(seq_file, name=name)
             super().save(**kwargs)
 
-    def get_uniseqs(self):
+    def _load(self):
         if len(self.sequences) == 0:
             self.sequences = {}
             with self.file.open(mode="rb") as f:
                 with gzip.open(f, mode="rb") as gz:
                     self.sequences = pickle.load(gz)
 
-        return [SeqRecord( seq = Seq(a[1]), id="s{}_{}".format(self.pk, a[0]),
+    def get_uniseqs(self):
+        self._load()
+
+        return [SeqRecord( seq = Seq(a[1]), id="{}_{}".format(self.pk, a[0]),
                            description="")
                 for a in enumerate(self.sequences.keys())]
+
+    def get_seq_by_id(self, item):
+        self._load()
+        return self.sequences[list(self.sequences.keys())[item]]
+
 
 class ScataOTU(models.Model):
     job = models.ForeignKey("scata2.ScataJob", on_delete=models.CASCADE)
