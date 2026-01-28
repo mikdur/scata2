@@ -1,4 +1,5 @@
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 from scata2.models import ScataJob
 from scata2.methods import methods as clustering_methods
@@ -12,5 +13,5 @@ def run_job(pk):
     model = clustering_methods[job.method]['model']
     model.run_job(job=job.pk)
     job.completed = True
-    job.completed_date = datetime.now()
+    job.completed_date = datetime.now(ZoneInfo("Europe/Stockholm"))
     job.save()
