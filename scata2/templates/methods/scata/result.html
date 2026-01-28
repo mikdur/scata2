@@ -41,4 +41,29 @@
 
         </table>
     </div>
+
+    {%  if object.completed %}
+    <div class="p-4 w-96 bg-stone-100 rounded-lg shadow-md">
+        <h2 class="pb-2 pt-2 text-lg font-serif font-bold">Global stats</h2>
+        <table class="table-auto min-w-full">
+            <tr>
+                <td class="font-semibold">Total data size:</td>
+                <td class="text-right font-mono"> {{ method_object.total_size }}</td>
+            </tr>
+            <tr>
+                <td class="font-semibold">Number of clusters:</td>
+                <td class="text-right font-mono"> {{ method_object.num_clusters }}</td>
+            </tr>
+            <tr>
+                <td class="font-semibold">Number of singletons:</td>
+                <td class="text-right font-mono"> {{ method_object.num_singletons }}</td>
+            </tr>
+            <tr>
+                <td class="font-semibold">Total number of unique sequences:</td>
+                <td class="text-right font-mono"> {{ method_object.num_genotypes}}</td>
+            </tr>
+
+        </table>
+    </div>
+    {%  endif %}
 </div>

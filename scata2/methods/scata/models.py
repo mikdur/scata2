@@ -92,6 +92,10 @@ class ScataScataMethod(ScataMethod):
                                      default=0, null=False, blank=False)
     num_genotypes = models.IntegerField("Number of genotypes", editable=False,
                                         default=0, null=False, blank=False)
+    num_clusters = models.IntegerField("Number of clusters", editable=False,
+                                       default=0, null=False, blank=False)
+    num_singletons = models.IntegerField("Number of global singleton sequences", editable=False,
+                                         default=0, null=False, blank=False)
 
 
     # Clustering method
@@ -360,6 +364,17 @@ class ScataScataMethod(ScataMethod):
         # Delete results objects, they are not used
         q2.delete_group(task_group)
 
+        # Summarise global metrics
+        self.num_clusters = 0
+        self.num_singletons = 0
+        for cluster in ScataCluster.objects.filter(job=self.job):
+
+            if cluster.size > 1:
+                self.num_clusters += 1
+            else:
+                self.num_singletons += 1
+
+        self.save()
         self.job.status = "Ready"
         self.job.save()
 
