@@ -20,7 +20,7 @@ def check_dataset(pk):
 
     # Dictionary of mappings between tag and readIDs
     #
-    #  {"tag_id":{"reads":{ .. }, "cnt": NN, "rev": NN}
+    #  {"tag_id":{"seq_ids":{ .. }, "cnt": NN, "rev": NN}
     #
     tags = dict()
 
@@ -72,11 +72,11 @@ def check_dataset(pk):
                 tags[read.tag]["cnt"] += 1
                 if read.reversed:
                     tags[read.tag]["rev"] += 1
-                tags[read.tag]["reads"].add(read.seq_record.id)
+                tags[read.tag]["seq_ids"].add(read.seq_record.id)
             else:
                 tags[read.tag] = {"cnt": 1,
                                   "rev": 1 if read.reversed else 0,
-                                  "reads": {read.seq_record.id},
+                                  "seq_ids": {read.seq_record.id},
                                   }
 
             seqs[read.seq_record.id] = read.seq_record.seq.upper()

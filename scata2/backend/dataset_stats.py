@@ -33,7 +33,7 @@ def dataset_stats(pk):
 
     # Dictionary of mappings between tag and readIDs
     # 
-    #  {"tag_id":{"reads":[ .. ], "cnt": NN, "rev": NN}
+    #  {"tag_id":{"read_id":[ .. ], "cnt": NN, "rev": NN}
     #
     tags = dict()
 
@@ -70,7 +70,7 @@ def dataset_stats(pk):
         gcs = []
         kmers = dict()
 
-        for s in tags[t]['reads']:
+        for s in tags[t]['seq_ids']:
             seq = str(seqs[s])
             if len(seq) == 0:
                 print("Seq is empty {}".format(s))
