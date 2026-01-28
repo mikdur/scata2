@@ -12,7 +12,8 @@ from django.conf import settings
 from Bio import SeqIO
 
 from scata2.storages import get_work_storage
-from scata2.methods.models import ScataMethod, ScataSequenceChunk, ChunkFullException
+from scata2.methods.models import ScataMethod, ScataSequenceChunk, ChunkFullException, open_tags
+from scata2.methods.models import ScataTag
 from django.forms import ModelForm
 from django.core.validators import MinValueValidator, MaxValueValidator
 import django_q.tasks as q2
@@ -22,6 +23,9 @@ import django_q.tasks as q2
 class ScataScataMethod(ScataMethod):
     pre_clusters = models.FileField("Pre clusters", null=True, blank=True,
                                     upload_to="scata/methods/scata/precluster/",
+                                    storage=get_work_storage)
+    tags = models.FileField("Tags", null=True, blank=True,
+                                    upload_to="scata/methods/scata/tags/",
                                     storage=get_work_storage)
     distance = models.FloatField("Clustering distance 0.001 < x < 0.10",
                                  null=False, blank=False, default=0.015,
@@ -272,6 +276,38 @@ class ScataScataMethod(ScataMethod):
             self.pre_clusters = File(cluster_file, name=name)
             self.save()
 
+
+
+        # Set up tag lookup structure. There will be one set per tag, slightly
+        # in-efficient, but more memory efficient. Scales O(n*1) assuming hash
+        # lookup is O(1).
+        #
+        # tags = { dataset.short_name + tag_id : { 'object': ScataTag.pk,
+        #                                          'seq_ids': { 'id1', 'id2', ... }
+
+
+        tags = {}
+        # Summarise cluster and save in the Orm model structure
+        for ds in self.job.datasets.all():
+            ds_tags = open_tags(ds)
+            for tag, tag_data in ds_tags.items():
+                obj = ScataTag()
+                obj.job = self.job
+                obj.size = 0
+                obj.name = ds.short_name + "_" + tag
+                obj.save()
+
+                tags[ ds.short_name + "_" + tag] = { 'object': obj.pk,
+                                               'seq_ids': tag_data['seq_ids']}
+
+
+        with BytesIO() as tag_file:
+            with gzip.open(tag_file, "wb") as gz:
+                pickle.dump(tags, gz)
+            tag_file.seek(0)
+            name = "j{}/tags".format(self.pk)
+            self.tags = File(tag_file, name=name)
+            self.save()
 
 
 
