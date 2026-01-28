@@ -214,12 +214,16 @@ class ScataRepSeq(models.Model):
 class ScataCluster(models.Model):
     job = models.ForeignKey("scata2.ScataJob", on_delete=models.CASCADE)
 
-    size = models.IntegerField("Cluster size", null=False, blank=False, editable=False)
+    size = models.IntegerField("Cluster size", null=False, blank=False, editable=False,
+                               default=0)
     num_reversed = models.IntegerField("Number of reversed sequences",
-                                       null=False, blank=False, editable=False)
-    num_genotypes = models.IntegerField("Number of genotypes", null=False, blank=False, editable=False)
+                                       null=False, blank=False, editable=False,
+                                       default=0)
+    num_genotypes = models.IntegerField("Number of genotypes", null=False, blank=False, editable=False,
+                                        default=0)
     num_singletons = models.IntegerField("Number of singleton sequences",
-                                         null=False, blank=False, editable=False)
+                                         null=False, blank=False, editable=False,
+                                         default=0)
 
 
 class ScataClusterGenotype(models.Model):
