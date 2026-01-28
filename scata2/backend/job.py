@@ -14,4 +14,5 @@ def run_job(pk):
     model.run_job(job=job.pk)
     job.completed = True
     job.completed_date = datetime.now(ZoneInfo("Europe/Stockholm"))
+    job.status = "Completed"
     job.save()
