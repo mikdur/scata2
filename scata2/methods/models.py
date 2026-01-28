@@ -11,12 +11,16 @@ from scata2.backend.ReadHandler.qualseq import QualSeq
 from scata2.backend.ReadHandler.exceptions import ScataReadsError
 
 
-
 # Helper function to open dataset
 def open_dataset(dataset):
     with dataset.sequences.file.open(mode="rb") as f:
         with gzip.open(f, mode="rb") as gz:
             return iter(pickle.load(gz).items())
+
+def open_tags(dataset):
+    with dataset.tags.file.open(mode="rb") as f:
+        with gzip.open(f, mode="rb") as gz:
+            return pickle.load(gz)
 
 class SeqIterator():
     total_cnt = 0
