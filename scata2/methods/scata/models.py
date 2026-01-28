@@ -13,7 +13,7 @@ from Bio import SeqIO
 
 from scata2.storages import get_work_storage
 from scata2.methods.models import ScataMethod, ScataSequenceChunk, ChunkFullException, open_tags
-from scata2.methods.models import ScataTag
+from scata2.methods.models import ScataTag, ScataCluster
 from django.forms import ModelForm
 from django.core.validators import MinValueValidator, MaxValueValidator
 import django_q.tasks as q2
@@ -478,6 +478,58 @@ class ScataScataMethod(ScataMethod):
 
         if len(unique_clusters) > 0:
             ScataScataSubCluster.make_subcluster(unique_clusters, cls_instance.job)
+
+
+    @classmethod
+    def summarise_cluster(cls, job_pk, start, offset):
+
+        cls_instance = cls.objects.get(job=job_pk)
+
+        if cls_instance.job.deleted:
+            print("cluster_chunk(): Job {} deleted".format(cls_instance.job.pk))
+            return
+
+        # Load data
+
+        clusters = None
+        id2name = None
+        with cls_instance.pre_clusters.open(mode="rb") as cluster_file:
+            with gzip.open(cluster_file, "rb") as cluster_file_gz:
+                clusters = pickle.load(cluster_file_gz)
+
+        with cls_instance.id2name.open(mode="rb") as id2name_file:
+            with gzip.open(id2name_file, "rb") as id2name_file_gz:
+                id2name = pickle.load(id2name_file_gz)
+
+        open_chunks = {}
+
+
+        for c in range(start, len(clusters), offset):
+            cluster_set = clusters[c]
+
+            # This is where each cluster is expanded/summarised
+
+            cluster = ScataCluster()
+            cluster.job = cls_instance.job
+            cluster.num_genotypes = len(cluster_set)
+            cluster.size = 0
+            cluster.num_clusters = 0
+
+
+
+            for seq_id in cluster_set:
+                chunk_id, id = [int(a) for a in seq_id.split("_")]
+
+                if chunk_id not in open_chunks:
+                    open_chunks[chunk_id] = ScataSequenceChunk.objects.get(pk=chunk_id)
+
+                seq_names = [id2name[a] for  a in open_chunks[chunk_id].get_seq_by_id(id)]
+
+                cluster.size += len(seq_names)
+                if len(seq_names) == 1:
+                    cluster.num_singletons += 1
+
+            cluster.save()
 
 
 class ScataScataSubCluster(models.Model):
