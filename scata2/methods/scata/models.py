@@ -132,7 +132,7 @@ class ScataScataMethod(ScataMethod):
                     self.job.save()
                     print("Deduplicating {}/{}".format(n, len(seq_iter)))
                 self.total_size += 1
-                id = "s{}".format(n)
+                id = "{}".format(n)
                 l = len(seq[1])
                 id2name[id] = seq[0]
                 chunk = seqs.get(l, ScataSequenceChunk.new_chunk(self.job, l))
