@@ -27,6 +27,9 @@ class ScataScataMethod(ScataMethod):
     tags = models.FileField("Tags", null=True, blank=True,
                                     upload_to="scata/methods/scata/tags/",
                                     storage=get_work_storage)
+    id2name = models.FileField("Tags", null=True, blank=True,
+                            upload_to="scata/methods/scata/id2name/",
+                            storage=get_work_storage)
     distance = models.FloatField("Clustering distance 0.001 < x < 0.10",
                                  null=False, blank=False, default=0.015,
                                  validators=[MinValueValidator(0.001,
@@ -309,6 +312,34 @@ class ScataScataMethod(ScataMethod):
             self.tags = File(tag_file, name=name)
             self.save()
 
+        with BytesIO() as id2name_file:
+            with gzip.open(id2name_file, "wb") as gz:
+                pickle.dump(id2name, gz)
+            id2name_file.seek(0)
+            name = "j{}/id2name".format(self.pk)
+            self.id2name = File(id2name_file, name=name)
+            self.save()
+
+        # Summary work scales by cluster size, so the first
+        # clusters in the list are usually much larger than the ones
+        # further down the list. To spread work evenly among workers,
+        # we interleave the clusters among the workers. (div/mod interleave)
+
+        job_size = 100 # 100 tasks per job
+
+        num_clusters = len(clusters)
+        num_jobs = int((num_clusters - (num_clusters % job_size)) / job_size)
+
+
+        summary_tasks = []
+        task_group = "scata_cluster_{}".format(self.job.pk)
+
+
+        for c in range(num_jobs):
+            summary_tasks.append(q2.async_task(ScataScataMethod.summarise_cluster,
+                                               self.job.pk, c, num_jobs,
+                                                group=task_group,
+                                               task_name="summarise_cluster job={}, offset={}".format(self.job.pk, c)))
 
 
     @classmethod
