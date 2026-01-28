@@ -198,6 +198,36 @@ class ScataRepSeq(models.Model):
     frequency = models.IntegerField(default = 0)
 
 
+# Global cluster
+class ScataCluster(models.Model):
+    job = models.ForeignKey("scata2.ScataJob", on_delete=models.CASCADE)
+
+    size = models.IntegerField("Cluster size", null=False, blank=False, editable=False)
+    num_reversed = models.IntegerField("Number of reversed sequences",
+                                       null=False, blank=False, editable=False)
+    num_genotypes = models.IntegerField("Number of genotypes", null=False, blank=False, editable=False)
+    num_singletons = models.IntegerField("Number of singleton sequences",
+                                         null=False, blank=False, editable=False)
+
+
+class ScataClusterGenotype(models.Model):
+    cluster = models.ForeignKey(ScataCluster, on_delete=models.CASCADE)
+    sequence = models.TextField("Sequence", null=False, blank=False, editable=False)
+    frequency = models.FloatField("Frequency", null=False, blank=False, editable=False)
+
+
+class ScataTag(models.Model):
+    job = models.ForeignKey("scata2.ScataJob", on_delete=models.CASCADE)
+    size = models.IntegerField("Total reads", null=False, blank=False, editable=False)
+    name = models.CharField("Name", max_length=200, null=False, blank=False, editable=False,
+                            default="")
+
+class ScataTagCluster(models.Model):
+    cluster = models.ForeignKey(ScataCluster, on_delete=models.CASCADE)
+    tag = models.ForeignKey(ScataTag, on_delete=models.CASCADE)
+    size = models.IntegerField("Cluster size", null=False, blank=False, editable=False)
+    sequences = models.FileField("Cluster sequences", null=True, blank=True)
+
 
 
 
