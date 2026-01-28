@@ -341,6 +341,27 @@ class ScataScataMethod(ScataMethod):
                                                 group=task_group,
                                                task_name="summarise_cluster job={}, offset={}".format(self.job.pk, c)))
 
+        # Count groups while waiting.
+        while True:
+            success_count = q2.count_group(task_group)
+            fail_count = q2.count_group(task_group, failures=True)
+            total_count = success_count + fail_count
+
+            self.job.refresh_from_db()
+            if self.job.deleted:
+                print("Job {} deleted".format(self.pk))
+                return
+            self.job.status = "Summarising {}/{}".format(total_count,                                                        len(tasks))
+            self.job.save()
+
+            if total_count == len(summary_tasks):
+                break
+            sleep(2)
+        # Delete results objects, they are not used
+        q2.delete_group(task_group)
+
+        self.job.status = "Ready"
+        self.job.save()
 
     @classmethod
     def cluster_chunk(cls, job_pk, task_num,
