@@ -379,9 +379,22 @@ class JobDetailView(OwnedDetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         m = self.object.method
-        context['method_object'] = clustering_methods[m]['model'].objects.\
-            all().filter(job=self.object.pk)[0]
+        context['method_object'] = clustering_methods[m]['model'].objects.get(job=self.object.pk)
         return context
+
+# This view calls into the method object to return data for
+# visualisation of the results.
+class JobDetailFacetJSONView(JSONResponseMixin, JobDetailView):
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Need to add caching here
+        context['data'] = context['method_object'].get_facet(self.kwargs['facet'])
+        return context
+
+    def get_data(self, context):
+        return dict(data=context['data'])
 
 
 class JobDeleteView(DeleteToTrashView):

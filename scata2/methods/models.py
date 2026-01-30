@@ -1,3 +1,4 @@
+import math
 from io import BytesIO
 from django.db import models
 from django.core.files import File
@@ -5,6 +6,8 @@ import gzip
 import pickle
 from Bio.SeqRecord import SeqRecord
 from Bio.Seq import Seq
+from django.http import Http404
+
 from scata2.storages import get_work_storage
 from scata2.backend.ReadHandler.filterseq import SeqDeTagger
 from scata2.backend.ReadHandler.qualseq import QualSeq
@@ -122,6 +125,24 @@ class ScataMethod(models.Model):
     def run_job(cls, job):
         instance = cls.objects.get(job=job)
         instance.cluster()
+
+    # Called from view to generate data for visualisation
+    def get_facet(self, facet):
+
+        if facet == "clusters":
+            return self.get_clusters()
+        else:
+            raise Http404("No such facet")
+
+
+    # Return list of clusters and their sizes
+    def get_clusters(self):
+        clusters = ScataCluster.objects.filter(job=self.job).order_by("-size")[:200]
+        return [{"id": c.cluster_id,
+                 "size": c.size,
+                 "size_log2": math.log2(c.size),
+                 "size_log10": math.log10(c.size),
+                 "singletons": c.num_singletons / c.size } for c in clusters]
 
 # Models to represent chunk of sequences
 class ChunkFullException(Exception):
