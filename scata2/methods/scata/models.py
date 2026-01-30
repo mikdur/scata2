@@ -355,7 +355,8 @@ class ScataScataMethod(ScataMethod):
             if self.job.deleted:
                 print("Job {} deleted".format(self.pk))
                 return
-            self.job.status = "Summarising {}/{}".format(total_count,                                                        len(tasks))
+            self.job.status = "Summarising {}/{}".format(total_count,
+                                                         len(summary_tasks))
             self.job.save()
 
             if total_count == len(summary_tasks):
