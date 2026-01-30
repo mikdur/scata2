@@ -368,7 +368,12 @@ class ScataScataMethod(ScataMethod):
         # Summarise global metrics
         self.num_clusters = 0
         self.num_singletons = 0
-        for cluster in ScataCluster.objects.filter(job=self.job):
+        cluster_num=0
+        for cluster in ScataCluster.objects.filter(job=self.job).order_by("-size"):
+            cluster_num += 1
+
+            cluster.cluster_id = "{}_{}".format(self.job.pk, cluster_num)
+            cluster.save()
 
             if cluster.size > 1:
                 self.num_clusters += 1

@@ -214,6 +214,8 @@ class ScataRepSeq(models.Model):
 class ScataCluster(models.Model):
     job = models.ForeignKey("scata2.ScataJob", on_delete=models.CASCADE)
 
+    cluster_id = models.CharField(max_length = 100, default = "")
+
     size = models.IntegerField("Cluster size", null=False, blank=False, editable=False,
                                default=0)
     num_reversed = models.IntegerField("Number of reversed sequences",
