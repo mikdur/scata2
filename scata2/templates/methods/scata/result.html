@@ -67,3 +67,75 @@
     </div>
     {%  endif %}
 </div>
+<div  class="p-4 w-11/12 bg-stone-100 rounded-lg shadow-md">
+    <h2 class="pb-2 pt-2 text-lg font-serif font-bold">Cluster size distribution (first 200 clusters)</h2>
+    <div x-data="" class="flex flex-row p-2">
+        <div class="flex ">
+            <label class="px-2">X axis transform:</label>
+            <select x-on:input="set_transform" class="px-2">
+                <option value="size" selected>Linear</option>
+                <option value="size_log2">Log 2</option>
+                <option value="size_log10">Log 10</option>
+            </select>
+        </div>
+    </div>
+    <div id="clusters" class="min-w-full">
+    </div>
+</div>
+
+{% block extra_js %}
+
+    <script type="module" >
+
+    const data = await d3.json("./detail/clusters/json");
+
+    let transform = "size";
+    function set_transform(e){
+        transform = e.srcElement.value
+        draw_clusters();
+    }
+
+    window.set_transform = set_transform;
+
+    function draw_clusters() {
+        const plot = Plot.plot({
+            width: 900,
+            y: {
+                grid: true,
+                percent: false
+            },
+            x: {
+                label: null,
+                tick: null
+            },
+            marks: [
+                Plot.ruleY([0]),
+                Plot.barY(data.data, {
+                    x: "id", y: transform,
+                    fill: "singletons",
+                    tip: "x",
+                    sort: {x: "y", reverse: true}
+                }),
+                Plot.axisX({ticks: []}),
+                Plot.ruleX([0])
+
+            ],
+            color: {
+                scheme: "viridis",
+                type: "linear",
+                //domain: [0.4, 0.6]
+
+            }
+        });
+
+        const div_clusters = document.querySelector("#clusters");
+        d3.select(div_clusters).selectChild("svg").remove();
+        div_clusters.append(plot);
+    };
+
+    draw_clusters();
+
+    </script>
+
+    {%  comment %}{{ block.super }} {% endcomment %}
+{% endblock %}
