@@ -12,7 +12,7 @@ from django.conf import settings
 from Bio import SeqIO
 
 from scata2.storages import get_work_storage
-from scata2.methods.models import ScataMethod, ScataSequenceChunk, ChunkFullException, open_tags
+from scata2.methods.models import ScataMethod, ScataSequenceChunk, ChunkFullException, open_tags, ScataTagCluster
 from scata2.methods.models import ScataTag, ScataCluster
 from django.forms import ModelForm
 from django.core.validators import MinValueValidator, MaxValueValidator
@@ -258,6 +258,7 @@ class ScataScataMethod(ScataMethod):
         for subcluster in subclusters:
             for sc in subcluster.get():
                 is_added = False
+                to_delete = [ ]
                 pre_merge_count += 1
                 for (i,c) in enumerate(clusters):
                     if len(sc & c):
@@ -265,7 +266,25 @@ class ScataScataMethod(ScataMethod):
                         is_added = True
                         break
                 if not is_added:
+                    if sc & c:
+                        if not is_added:
+                            clusters[i] |= sc
+                            is_added = i
+                        else:
+                            clusters[is_added] |= sc
+                            clusters[is_added] |= clusters[i]
+                            to_delete.append(i)
+                if is_added: # Delete any merged items if needed.
+                    for i in reversed(to_delete):
+                        del clusters[i]
+                else:
                     clusters.append(sc)
+
+        pre_clusters = [ ]
+        print("Clusters: {}".format(len(clusters)))
+
+                    clusters.append(sc)
+            print("merged {} {}".format(len(pre_clusters), len(clusters)))
 
         print("{} pre-clusters merged into {} clusters.\n{} genotypes".format(pre_merge_count,len(clusters),
                                                                              self.num_genotypes))
@@ -432,7 +451,7 @@ class ScataScataMethod(ScataMethod):
                                                                   cls_instance.extend_pen * cls_instance.endgap_pen),
                                     "--strand", "plus",
                                     "--threads", "1",
-                                    "--maxaccepts", "100",
+                                    "--maxaccepts", "0",
                                     "--maxrejects", "100",
                                     "--usearch_global", query_file,
                                     "--db", target_file,
