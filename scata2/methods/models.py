@@ -138,11 +138,13 @@ class ScataMethod(models.Model):
     # Return list of clusters and their sizes
     def get_clusters(self):
         clusters = ScataCluster.objects.filter(job=self.job).order_by("-size")[:200]
-        return [{"id": c.cluster_id,
+        return [{"id": c.name,
                  "size": c.size,
                  "size_log2": math.log2(c.size),
                  "size_log10": math.log10(c.size),
-                 "singletons": c.num_singletons / c.size } for c in clusters]
+                 "singletons": c.num_singletons / c.size,
+                 "genotypes": c.num_genotypes } for c in clusters]
+
 
 # Models to represent chunk of sequences
 class ChunkFullException(Exception):
@@ -235,7 +237,7 @@ class ScataRepSeq(models.Model):
 class ScataCluster(models.Model):
     job = models.ForeignKey("scata2.ScataJob", on_delete=models.CASCADE)
 
-    cluster_id = models.CharField(max_length = 100, default = "")
+    name = models.CharField(max_length = 100, default = "")
 
     size = models.IntegerField("Cluster size", null=False, blank=False, editable=False,
                                default=0)
