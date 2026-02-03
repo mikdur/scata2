@@ -421,6 +421,9 @@ class ScataScataMethod(ScataMethod):
                       query, target):
         cls_instance = cls.objects.get(job=job_pk)
 
+        # Instance can be cached.
+        cls_instance.refresh_from_db()
+
         if cls_instance.job.deleted:
             print("cluster_chunk(): Job {} deleted".format(cls_instance.job.pk))
             return
