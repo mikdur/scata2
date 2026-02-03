@@ -332,7 +332,6 @@ class ScataScataMethod(ScataMethod):
             for tag, tag_data in ds_tags.items():
                 obj = ScataTag()
                 obj.job = self.job
-                obj.size = 0
                 obj.name = ds.short_name + "_" + tag
                 obj.save()
 
