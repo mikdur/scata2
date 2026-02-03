@@ -400,8 +400,9 @@ class ScataJob(ScataModel):
         return reverse("job-list")
 
     def __str__(self):
-        return "{u} {status}".format(u=self.get_owner(),
-                                     status=self.status)
+        return "{u} {name} ({status})".format(u=self.get_owner(),
+                                     status=self.status,
+                                     name=self.name)
 
     def foo(self):
         print(clustering_methods)
