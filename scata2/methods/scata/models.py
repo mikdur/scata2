@@ -569,6 +569,8 @@ class ScataScataMethod(ScataMethod):
 
         clusters = None
         id2name = None
+        tags = None
+
         with cls_instance.pre_clusters.open(mode="rb") as cluster_file:
             with gzip.open(cluster_file, "rb") as cluster_file_gz:
                 clusters = pickle.load(cluster_file_gz)
@@ -577,16 +579,31 @@ class ScataScataMethod(ScataMethod):
             with gzip.open(id2name_file, "rb") as id2name_file_gz:
                 id2name = pickle.load(id2name_file_gz)
 
+        with cls_instance.tags.open(mode="rb") as tags_file:
+            with gzip.open(tags_file, "rb") as tags_file_gz:
+                tags = pickle.load(tags_file_gz)
+
+
+
         open_chunks = {}
 
+        # Local helper function
+        def get_tag(seq_id):
+            for t, d in tags.items():
+                if seq_id in d['seq_ids']:
+                    return (t, d['object'])
+            raise KeyError("Sequence id {} not found in tags".format(seq_id))
 
         for c in range(start, len(clusters), offset):
             cluster_set = clusters[c]
+            open_tag_clusters = {}
+            open_tag_objects = {}
 
             # This is where each cluster is expanded/summarised
 
             cluster = ScataCluster()
             cluster.job = cls_instance.job
+            cluster.name = "{}_{}".format(cluster.job.pk, c)
             cluster.num_genotypes = len(cluster_set)
             cluster.size = 0
             cluster.num_clusters = 0
@@ -605,7 +622,30 @@ class ScataScataMethod(ScataMethod):
                 if len(seq_names) == 1:
                     cluster.num_singletons += 1
 
+                for seq_name in seq_names:
+                    tag, tag_obj_pk = get_tag(seq_name)
+
+                    if tag_obj_pk not in open_tag_objects:
+                        open_tag_objects[tag_obj_pk] = ScataTag.objects.get(pk=tag_obj_pk)
+
+                    if tag not in open_tag_clusters:
+                        tag_cluster = ScataTagCluster()
+                        tag_cluster.cluster = cluster
+                        tag_cluster.tag = open_tag_objects[tag_obj_pk]
+                        open_tag_clusters[tag] = tag_cluster
+                        open_tag_objects[tag_obj_pk].num_clusters += 1
+
+                    open_tag_clusters[tag].size += 1
+                    open_tag_clusters[tag].seq_list.append(seq_name)
+                    open_tag_objects[tag_obj_pk].size += 1
+
             cluster.save()
+            for tc in open_tag_clusters.values():
+                tc.save()
+            for t in open_tag_objects.values():
+                t.save()
+
+
 
 
 class ScataScataSubCluster(models.Model):
