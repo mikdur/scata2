@@ -145,10 +145,7 @@ class ScataScataMethod(ScataMethod):
                 except ChunkFullException:
                     chunk.save()
                     self.num_genotypes += chunk.num_uniques
-                    old_chunk = chunk
-                    chunk = None
                     chunk = ScataSequenceChunk.new_chunk(self.job, l)
-                    assert(chunk != old_chunk)
                     chunk.add_sequence(id, seq[1])
 
                 seqs[l] = chunk
@@ -261,11 +258,6 @@ class ScataScataMethod(ScataMethod):
                 to_delete = [ ]
                 pre_merge_count += 1
                 for (i,c) in enumerate(clusters):
-                    if len(sc & c):
-                        clusters[i] |= sc
-                        is_added = True
-                        break
-                if not is_added:
                     if sc & c:
                         if not is_added:
                             clusters[i] |= sc
@@ -283,6 +275,27 @@ class ScataScataMethod(ScataMethod):
         pre_clusters = [ ]
         print("Clusters: {}".format(len(clusters)))
 
+        while len(pre_clusters) != len(clusters):
+            print("merge {} {}".format(len(pre_clusters), len(clusters)))
+            pre_clusters = clusters
+            clusters = [ ]
+            for sc in pre_clusters:
+                is_added = False
+                to_delete = []
+                pre_merge_count += 1
+                for (i, c) in enumerate(clusters):
+                    if sc & c:
+                        if not is_added:
+                            clusters[i] |= sc
+                            is_added = i
+                        else:
+                            clusters[is_added] |= sc
+                            clusters[is_added] |= clusters[i]
+                            to_delete.append(i)
+                if is_added:  # Delete any merged items if needed.
+                    for i in reversed(to_delete):
+                        del clusters[i]
+                else:
                     clusters.append(sc)
             print("merged {} {}".format(len(pre_clusters), len(clusters)))
 
