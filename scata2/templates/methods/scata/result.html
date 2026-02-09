@@ -82,10 +82,66 @@
     <div id="clusters" class="min-w-full">
     </div>
 </div>
+<div class="my-4 p-4 w-11/12 bg-stone-100 rounded-lg shadow-md"
+     x-data="{ open_ct: 0, init_ct: 0 }">
+    <h2 @click="open_ct = !open_ct; if(!init_ct) {init_ct=1; show_clustertable() }"
+        class="pb-2 pt-2 text-lg font-serif font-bold">
+        Cluster list <span x-show="!open_ct">(click to show)</span>
+    </h2>
+    <div  x-show="open_ct" class="min-w-full">
+        <table id="clustertable"> </table>
+    </div>
+</div>
+
 
 {% block extra_js %}
 
     <script type="module" >
+    <script>
+
+
+    async function show_clustertable() {
+        console.log('foo');
+        const data = await d3.json("./detail/clustertable/json");
+        console.log(data);
+        $('#clustertable').DataTable({
+            data: data.data,
+            order: [[1, 'desc']],
+            pageLength: 25,
+            columns: [
+                {data: 'name'},
+                {data: 'size'},
+                {data: 'genotypes'},
+                {data: 'singletons'}
+
+            ],
+            columnDefs: [
+                {
+                    title: 'Name',
+                    targets: 0
+                },
+                {
+                    title: 'Size',
+                    targets: 1
+                },
+                {
+                    title: 'Genotypes',
+                    targets: 2
+                },
+                {
+                    title: 'Singletons',
+                    targets: 3
+                }
+            ]
+
+        });
+
+    }
+
+    window.show_clustertable = show_clustertable;
+
+</script>
+
 
     const data = await d3.json("./detail/clusters/json");
 

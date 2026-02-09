@@ -131,6 +131,8 @@ class ScataMethod(models.Model):
 
         if facet == "clusters":
             return self.get_clusters()
+        elif facet == "clustertable":
+            return self.get_clustertable()
         else:
             raise Http404("No such facet")
 
@@ -144,6 +146,17 @@ class ScataMethod(models.Model):
                  "size_log10": math.log10(c.size),
                  "singletons": c.num_singletons / c.size,
                  "genotypes": c.num_genotypes } for c in clusters]
+
+    def get_clustertable(self):
+        clusters = ScataCluster.objects.filter(job=self.job).order_by("-size")[:40]
+
+        return [ { "name": c.name,
+                   "size": c.size,
+                   "genotypes": c.num_genotypes,
+                   "singletons": c.num_singletons,
+                   #"Reversed": c.num_reversed,
+                 } for c in clusters ]
+
 
 
 # Models to represent chunk of sequences
