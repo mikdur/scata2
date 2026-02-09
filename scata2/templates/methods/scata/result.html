@@ -93,10 +93,16 @@
     </div>
 </div>
 
+<div  class="my-4 p-4 w-11/12 bg-stone-100 rounded-lg shadow-md">
+    <h2 class="pb-2 pt-2 text-lg font-serif font-bold">Sample by otu heatmap</h2>
+
+    <div id="clustertag_heatmap" class="min-w-full">
+    </div>
+</div>
+
 
 {% block extra_js %}
 
-    <script type="module" >
     <script>
 
 
@@ -193,6 +199,53 @@
     draw_clusters();
 
     </script>
+
+  <script type="module" >
+
+    const ct_data = await d3.json("./detail/clustertag_relative/json");
+
+    function draw_ct_heatmap() {
+        const ct_plot = Plot.plot({
+            marginLeft: 200,
+            marginBottom: 60,
+            padding: 0,
+            width: 900,
+            y: {label: null},
+            x: {
+                tickRotate: -45,
+                label:null
+            },
+            color: {type: "linear", legend: true, scheme: "turbo"},
+            marks: [
+                Plot.cell(
+                    ct_data.data,
+                    {
+                        x: "cluster",
+                        y: "tag",
+                        fill: "rel_size",
+                        tip: true,
+                        inset: 0.5,
+                        channels: {size: "size"},
+                        sort: {y: "data",
+                                reduce: ([D]) => D.c_order }
+                    }
+                )
+            ]
+
+        })
+
+        const div_ct_plot = document.querySelector("#clustertag_heatmap");
+        d3.select(div_ct_plot).selectChild("svg").remove();
+        div_ct_plot.append(ct_plot);
+    }
+
+    draw_ct_heatmap();
+
+
+
+
+
+  </script>
 
     {%  comment %}{{ block.super }} {% endcomment %}
 {% endblock %}

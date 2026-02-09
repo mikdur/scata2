@@ -7,6 +7,8 @@ import pickle
 from Bio.SeqRecord import SeqRecord
 from Bio.Seq import Seq
 from django.http import Http404
+import numpy as np
+from sklearn.cluster import AgglomerativeClustering
 
 from scata2.storages import get_work_storage
 from scata2.backend.ReadHandler.filterseq import SeqDeTagger
@@ -133,6 +135,8 @@ class ScataMethod(models.Model):
             return self.get_clusters()
         elif facet == "clustertable":
             return self.get_clustertable()
+        elif facet == "clustertag_relative":
+            return self.get_clustertag_relative()
         else:
             raise Http404("No such facet")
 
@@ -156,6 +160,44 @@ class ScataMethod(models.Model):
                    "singletons": c.num_singletons,
                    #"Reversed": c.num_reversed,
                  } for c in clusters ]
+
+
+    def get_clustertag_relative(self):
+        clusters = [c.pk for c in ScataCluster.objects.filter(job=self.job).order_by("-size")[:60]]
+        tags = ScataTag.objects.filter(job=self.job).order_by("name")
+
+
+        pk2i = { v:i for i,v in enumerate(clusters) }
+
+        X = np.zeros((len(tags), len(clusters)), dtype=np.float64)
+
+        ret = []
+        for i,t in enumerate(tags):
+            tagclusters = ScataTagCluster.objects.filter(tag=t, cluster__in=clusters)
+            tag_size = sum([tc.size for tc in tagclusters])
+            for tc in tagclusters:
+                ret.append({ "tag": t.name,
+                     "cluster": tc.cluster.name,
+                     "size": "{}".format(tc.size),
+                     "rel_size": "{}".format((tc.size / tag_size)), })
+                X[i, pk2i[tc.cluster.pk]] = math.log2(tc.size / tag_size)
+
+        #order = leaves_list(linkage(X, optimal_ordering=True))
+
+        model = AgglomerativeClustering(distance_threshold=0, n_clusters=None)
+        model.fit(X)
+
+        order = [int(x) for c in model.children_ for x in c if x < model.n_leaves_]
+
+
+        tagname2order = {}
+        for i in range(len(order)):
+            tagname2order[tags[i].name] = order[i]
+
+        for i in range(len(ret)):
+            ret[i]['c_order'] = int(tagname2order[ret[i]['tag']])
+
+        return ret
 
 
 
