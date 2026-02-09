@@ -7,7 +7,9 @@ import pickle
 from Bio.SeqRecord import SeqRecord
 from Bio.Seq import Seq
 from django.http import Http404
+
 import numpy as np
+from scipy.special import gammaln
 from sklearn.cluster import AgglomerativeClustering
 
 from scata2.storages import get_work_storage
@@ -137,6 +139,8 @@ class ScataMethod(models.Model):
             return self.get_clustertable()
         elif facet == "clustertag_relative":
             return self.get_clustertag_relative()
+        elif facet == "species_accumulation":
+            return self.get_species_accumulation()
         else:
             raise Http404("No such facet")
 
@@ -199,6 +203,35 @@ class ScataMethod(models.Model):
 
         return ret
 
+
+    def get_species_accumulation(self):
+
+        # https://stackoverflow.com/questions/26938888/log-computations-in-python
+        # n choose k can be implemented using gamma distribution
+        def _combln(n, k):
+            return gammaln(n + 1) - gammaln(n - k + 1)
+
+        tags = ScataTag.objects.filter(job=self.job).order_by("name")
+        ret = []
+        for tag in tags:
+            stc = ScataTagCluster.objects.filter(tag=tag)
+
+            sizes = np.array([a.size for a in stc], dtype=np.float64)
+
+            K = len(sizes)
+            N = sum(sizes)
+
+            curve = [ ]
+            for n in np.linspace(1, N, num=50, dtype=np.float64):
+                summation = np.float64(0.0)
+                for s in sizes:
+                    summation += np.exp(_combln(N - s, n) - _combln(N, n))
+                curve.append((float(n), float(K - summation)))
+
+            ret += [{ "tag": tag.name,
+                         "x": a[0],
+                         "y": a[1]} for a in curve]
+        return ret
 
 
 # Models to represent chunk of sequences

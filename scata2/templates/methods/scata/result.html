@@ -100,6 +100,12 @@
     </div>
 </div>
 
+<div  class="my-4 p-4 w-11/12 bg-stone-100 rounded-lg shadow-md">
+    <h2 class="pb-2 pt-2 text-lg font-serif font-bold">Species accumulation</h2>
+
+    <div id="species_accumulation" class="min-w-full">
+    </div>
+</div>
 
 {% block extra_js %}
 
@@ -246,6 +252,40 @@
 
 
   </script>
+
+    <script type="module" >
+
+    const sa_data = await d3.json("./detail/species_accumulation/json");
+
+    function draw_species_accumulation() {
+        const sa_plot = Plot.plot({
+            style: "overflow: visible;",
+            width: 900,
+            y: {grid: true},
+            marks: [
+            Plot.line(sa_data.data, {x: "x", y: "y",
+                stroke: "tag",
+                tip: {
+                    format: {
+                        x: false,
+                        y: false,
+                        stroke: false
+                    }
+                },
+                channels: {tag: "tag"},}),
+
+  ]
+});
+
+        const div_sa_plot = document.querySelector("#species_accumulation");
+        d3.select(div_sa_plot).selectChild("svg").remove();
+        div_sa_plot.append(sa_plot);
+    }
+
+    draw_species_accumulation();
+    </script>
+
+
 
     {%  comment %}{{ block.super }} {% endcomment %}
 {% endblock %}
