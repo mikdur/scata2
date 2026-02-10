@@ -347,16 +347,33 @@ class ScataClusterGenotype(models.Model):
 
 class ScataTag(models.Model):
     job = models.ForeignKey("scata2.ScataJob", on_delete=models.CASCADE)
-    size = models.IntegerField("Total reads", null=False, blank=False, editable=False)
+    size = models.IntegerField("Total reads", null=False, blank=False, editable=False,
+                               default=0)
+    num_clusters = models.IntegerField("Number of clusters", null=False, blank=False, editable=False,
+                                       default=0)
     name = models.CharField("Name", max_length=200, null=False, blank=False, editable=False,
                             default="")
 
 class ScataTagCluster(models.Model):
     cluster = models.ForeignKey(ScataCluster, on_delete=models.CASCADE)
     tag = models.ForeignKey(ScataTag, on_delete=models.CASCADE)
-    size = models.IntegerField("Cluster size", null=False, blank=False, editable=False)
-    sequences = models.FileField("Cluster sequences", null=True, blank=True)
+    size = models.IntegerField("Cluster size", null=False, blank=False, editable=False,
+                               default=0)
+    sequences = models.FileField("Cluster sequences", upload_to = "scata/methods/scata/tag/",
+                                 storage=get_work_storage, null=True, blank=True)
 
+    seq_list = []
+
+
+    def save(self, **kwargs):
+        super().save(**kwargs)
+        with BytesIO() as seq_file:
+            with gzip.open(seq_file, "wb") as gz:
+                pickle.dump(self.sequences, gz)
+            seq_file.seek(0)
+            name = "j{}/c{}_t{}".format(self.cluster.job.pk, self.cluster.pk, self.pk)
+            self.file = File(seq_file, name=name)
+            super().save(**kwargs)
 
 
 
