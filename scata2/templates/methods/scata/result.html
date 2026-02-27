@@ -68,7 +68,31 @@
     {% endif %}
 </div>
 {% if object.completed %}
-
+    <div class="my-4 p-4 w-11/12 bg-stone-100 rounded-lg shadow-md">
+        <h2 class="pb-2 pt-2 text-lg font-serif font-bold">Display settings</h2>
+        <form id="settings">
+            <div class="mb-3">
+                <label for="cluster_min" class="block text-gray-700 text-sm font-bold mb-2">
+                    Minimum global cluster read depth:
+                </label>
+                <input class="numberinput border focus:outline-none rounded-lg py-2
+                            text-gray-700 w-full bg-white px-4 appearance-none
+                              block leading-normal border-gray-300"
+                       value="{{ method_object.get_default_cluster_min }}"
+                       type="number" name="cluster_min" id="cluster_min">
+            </div>
+            <div class="mb-3">
+                <label for="cell_min" class="block text-gray-700 text-sm font-bold mb-2">
+                    Minimum cell read count (in tag-otu matrix):
+                </label>
+                <input class="numberinput border focus:outline-none rounded-lg py-2
+                            text-gray-700 w-full bg-white px-4 appearance-none
+                              block leading-normal border-gray-300"
+                       type="number" name="cell_min" id="cell_min"
+                       value="{{ method_object.get_default_cell_min }}">
+            </div>
+        </form>
+    </div>
     <div class="my-4 p-4 w-11/12 bg-stone-100 rounded-lg shadow-md">
         <h2 class="pb-2 pt-2 text-lg font-serif font-bold">Cluster size distribution (first 200 clusters)</h2>
         <div x-data="" class="flex flex-row p-2">
@@ -203,12 +227,14 @@
         }
 
         draw_clusters();
+        window.draw_clusters = draw_clusters;
     </script>
 
     <script type="module">
 
         async function draw_ct_heatmap() {
-            const ct_data = await d3.json("./detail/clustertag_relative/json");
+            const ct_data = await d3.json("./detail/clustertag_relative/json" + "?" +
+                                            queryString);
             const ct_plot = Plot.plot({
                 marginLeft: 200,
                 marginBottom: 60,
@@ -240,17 +266,19 @@
 
             })
 
+            $("#clustertag_heatmap").empty();
             const div_ct_plot = document.querySelector("#clustertag_heatmap");
-            d3.select(div_ct_plot).selectChild("svg").remove();
             div_ct_plot.append(ct_plot);
         }
 
         draw_ct_heatmap();
+        window.draw_ct_heatmap = draw_ct_heatmap;
     </script>
 
     <script type="module">
         async function draw_species_accumulation() {
-            const sa_data = await d3.json("./detail/species_accumulation/json");
+            const sa_data = await d3.json("./detail/species_accumulation/json" + "?" +
+            queryString);
             const sa_plot = Plot.plot({
                 style: "overflow: visible;",
                 width: 900,
@@ -272,15 +300,29 @@
                 ]
             });
 
+            $("#species_accumulation").empty();
             const div_sa_plot = document.querySelector("#species_accumulation");
-            d3.select(div_sa_plot).selectChild("svg").remove();
             div_sa_plot.append(sa_plot);
         }
 
         draw_species_accumulation();
+        window.draw_species_accumulation = draw_species_accumulation;
     </script>
 
 
+    <script>
+        var queryString = "";
+        $("#settings").change($.debounce(500, function(e){
+            queryString = $(this).serialize();
+            update_graphs();
+        }));
+
+
+        function update_graphs() {
+            draw_ct_heatmap();
+            draw_species_accumulation();
+        }
+    </script>
 
     {%  comment %}{{ block.super }} {% endcomment %}
 {% endblock %}

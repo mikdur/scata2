@@ -379,6 +379,7 @@ class JobDetailView(OwnedDetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         m = self.object.method
+
         context['method_object'] = clustering_methods[m]['model'].objects.get(job=self.object.pk)
         return context
 
@@ -388,9 +389,9 @@ class JobDetailFacetJSONView(JSONResponseMixin, JobDetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
         # Need to add caching here
-        context['data'] = context['method_object'].get_facet(self.kwargs['facet'])
+        context['data'] = context['method_object'].get_facet(self.kwargs['facet'],
+                                                             request=self.request)
         return context
 
     def get_data(self, context):

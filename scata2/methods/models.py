@@ -131,16 +131,18 @@ class ScataMethod(models.Model):
         instance.cluster()
 
     # Called from view to generate data for visualisation
-    def get_facet(self, facet):
+    def get_facet(self, facet, request=None):
 
         if facet == "clusters":
             return self.get_clusters()
         elif facet == "clustertable":
             return self.get_clustertable()
         elif facet == "clustertag_relative":
-            return self.get_clustertag_relative()
+            return self.get_clustertag_relative(request=request)
         elif facet == "species_accumulation":
-            return self.get_species_accumulation()
+            return self.get_species_accumulation(request=request)
+        elif facet == "cell_histogram":
+            return self.get_cell_histogram()
         else:
             raise Http404("No such facet")
 
@@ -166,8 +168,12 @@ class ScataMethod(models.Model):
                  } for c in clusters ]
 
 
-    def get_clustertag_relative(self):
-        clusters = [c.pk for c in ScataCluster.objects.filter(job=self.job).order_by("-size")[:60]]
+    def get_clustertag_relative(self, request):
+        clusters = [c.pk for c in
+                    ScataCluster.objects.filter(job=self.job,
+                                                size__gte=int(request.GET.get("cluster_min",
+                                                                              self.get_default_cluster_min())))\
+                                                .order_by("-size")[:60]]
         tags = ScataTag.objects.filter(job=self.job).order_by("name")
 
 
@@ -177,7 +183,9 @@ class ScataMethod(models.Model):
 
         ret = []
         for i,t in enumerate(tags):
-            tagclusters = ScataTagCluster.objects.filter(tag=t, cluster__in=clusters)
+            tagclusters = ScataTagCluster.objects.filter(tag=t, cluster__in=clusters,
+                                                         size__gte=int(request.GET.get("cell_min",
+                                                                                       self.get_default_cell_min())))
             tag_size = sum([tc.size for tc in tagclusters])
             for tc in tagclusters:
                 ret.append({ "tag": t.name,
@@ -204,7 +212,7 @@ class ScataMethod(models.Model):
         return ret
 
 
-    def get_species_accumulation(self):
+    def get_species_accumulation(self, request):
 
         # https://stackoverflow.com/questions/26938888/log-computations-in-python
         # n choose k can be implemented using gamma distribution
@@ -212,10 +220,16 @@ class ScataMethod(models.Model):
         def _combln(n, k):
             return gammaln(n + 1) - gammaln(n - k + 1)
 
+
+        clusters = ScataCluster.objects.filter(job=self.job,
+                                              size__gte=int(request.GET.get("cluster_min",
+                                                                        self.get_default_cluster_min())))
+
         tags = ScataTag.objects.filter(job=self.job).order_by("name")
         ret = []
         for tag in tags:
-            stc = ScataTagCluster.objects.filter(tag=tag)
+            stc = ScataTagCluster.objects.filter(tag=tag, cluster__in=clusters)\
+                .filter(size__gte=int(request.GET.get("cell_min", self.get_default_cell_min())))
 
             sizes = np.array([a.size for a in stc], dtype=np.float64)
 
@@ -234,6 +248,24 @@ class ScataMethod(models.Model):
                          "y": a[1]} for a in curve]
         return ret
 
+    def get_cell_histogram(self):
+
+        tags = ScataTag.objects.filter(job=self.job).order_by("name")
+        histogram = dict()
+        for tag in tags:
+            stc = ScataTagCluster.objects.filter(tag=tag)
+            for s in stc:
+                k=int(math.log10(s.size) * 10)
+                histogram[k] = histogram.get(k,0) + 1
+
+        return [{"x": k / 10,
+                 "y": math.log10(v)} for k, v in histogram.items()]
+
+    def get_default_cell_min(self):
+        return 10
+
+    def get_default_cluster_min(self):
+        return 4
 
 # Models to represent chunk of sequences
 class ChunkFullException(Exception):
