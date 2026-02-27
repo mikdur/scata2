@@ -67,6 +67,7 @@
     </div>
     {%  endif %}
 </div>
+{% if object.completed %}
 <div  class="my-4 p-4 w-11/12 bg-stone-100 rounded-lg shadow-md">
     <h2 class="pb-2 pt-2 text-lg font-serif font-bold">Cluster size distribution (first 200 clusters)</h2>
     <div x-data="" class="flex flex-row p-2">
@@ -106,185 +107,176 @@
     <div id="species_accumulation" class="min-w-full">
     </div>
 </div>
+{% endif %}
+
 
 {% block extra_js %}
 
     <script>
+        async function show_clustertable() {
+            console.log('foo');
+            const data = await d3.json("./detail/clustertable/json");
+            console.log(data);
+            $('#clustertable').DataTable({
+                data: data.data,
+                order: [[1, 'desc']],
+                pageLength: 25,
+                columns: [
+                    {data: 'name'},
+                    {data: 'size'},
+                    {data: 'genotypes'},
+                    {data: 'singletons'}
 
+                ],
+                columnDefs: [
+                    {
+                        title: 'Name',
+                        targets: 0
+                    },
+                    {
+                        title: 'Size',
+                        targets: 1
+                    },
+                    {
+                        title: 'Genotypes',
+                        targets: 2
+                    },
+                    {
+                        title: 'Singletons',
+                        targets: 3
+                    }
+                ]
+            });
+        }
 
-    async function show_clustertable() {
-        console.log('foo');
-        const data = await d3.json("./detail/clustertable/json");
-        console.log(data);
-        $('#clustertable').DataTable({
-            data: data.data,
-            order: [[1, 'desc']],
-            pageLength: 25,
-            columns: [
-                {data: 'name'},
-                {data: 'size'},
-                {data: 'genotypes'},
-                {data: 'singletons'}
-
-            ],
-            columnDefs: [
-                {
-                    title: 'Name',
-                    targets: 0
-                },
-                {
-                    title: 'Size',
-                    targets: 1
-                },
-                {
-                    title: 'Genotypes',
-                    targets: 2
-                },
-                {
-                    title: 'Singletons',
-                    targets: 3
-                }
-            ]
-
-        });
-
-    }
-
-    window.show_clustertable = show_clustertable;
-
-</script>
-
-<script type="module" >
-
-    const data = await d3.json("./detail/clusters/json");
-
-    let transform = "size";
-    function set_transform(e){
-        transform = e.srcElement.value
-        draw_clusters();
-    }
-
-    window.set_transform = set_transform;
-
-    function draw_clusters() {
-        const plot = Plot.plot({
-            marginLeft: 60,
-            width: 900,
-            y: {
-                grid: true,
-                percent: false
-            },
-            x: {
-                label: null,
-                tick: null
-            },
-            marks: [
-                Plot.ruleY([0]),
-                Plot.barY(data.data, {
-                    x: "id", y: transform,
-                    fill: "singletons",
-                    tip: "x",
-                    channels: {Genotypes:"genotypes"},
-                    sort: {x: "y", reverse: true}
-                }),
-                Plot.axisX({ticks: []}),
-                Plot.ruleX([0])
-
-            ],
-            color: {
-                scheme: "viridis",
-                type: "linear",
-                //domain: [0.4, 0.6]
-
-            }
-        });
-
-        const div_clusters = document.querySelector("#clusters");
-        d3.select(div_clusters).selectChild("svg").remove();
-        div_clusters.append(plot);
-    }
-
-    draw_clusters();
-
+        window.show_clustertable = show_clustertable;
     </script>
 
-  <script type="module" >
+    <script type="module">
+        let transform = "size";
 
-    const ct_data = await d3.json("./detail/clustertag_relative/json");
+        function set_transform(e) {
+            transform = e.srcElement.value
+            draw_clusters();
+        }
 
-    function draw_ct_heatmap() {
-        const ct_plot = Plot.plot({
-            marginLeft: 200,
-            marginBottom: 60,
-            padding: 0,
-            width: 900,
-            y: {label: null},
-            x: {
-                tickRotate: -45,
-                label:null
-            },
-            color: {type: "linear", legend: true, scheme: "turbo"},
-            marks: [
-                Plot.cell(
-                    ct_data.data,
-                    {
-                        x: "cluster",
-                        y: "tag",
-                        fill: "rel_size",
-                        tip: true,
-                        inset: 0.5,
-                        channels: {size: "size"},
-                        sort: {y: "data",
-                                reduce: ([D]) => D.c_order }
-                    }
-                )
-            ]
+        window.set_transform = set_transform;
 
-        })
-
-        const div_ct_plot = document.querySelector("#clustertag_heatmap");
-        d3.select(div_ct_plot).selectChild("svg").remove();
-        div_ct_plot.append(ct_plot);
-    }
-
-    draw_ct_heatmap();
-
-
-
-
-
-  </script>
-
-    <script type="module" >
-
-    const sa_data = await d3.json("./detail/species_accumulation/json");
-
-    function draw_species_accumulation() {
-        const sa_plot = Plot.plot({
-            style: "overflow: visible;",
-            width: 900,
-            y: {grid: true},
-            marks: [
-            Plot.line(sa_data.data, {x: "x", y: "y",
-                stroke: "tag",
-                tip: {
-                    format: {
-                        x: false,
-                        y: false,
-                        stroke: false
-                    }
+        async function draw_clusters() {
+            const data = await d3.json("./detail/clusters/json");
+            const plot = Plot.plot({
+                marginLeft: 60,
+                width: 900,
+                y: {
+                    grid: true,
+                    percent: false
                 },
-                channels: {tag: "tag"},}),
+                x: {
+                    label: null,
+                    tick: null
+                },
+                marks: [
+                    Plot.ruleY([0]),
+                    Plot.barY(data.data, {
+                        x: "id", y: transform,
+                        fill: "singletons",
+                        tip: "x",
+                        channels: {Genotypes: "genotypes"},
+                        sort: {x: "y", reverse: true}
+                    }),
+                    Plot.axisX({ticks: []}),
+                    Plot.ruleX([0])
 
-  ]
-});
+                ],
+                color: {
+                    scheme: "viridis",
+                    type: "linear",
+                    //domain: [0.4, 0.6]
 
-        const div_sa_plot = document.querySelector("#species_accumulation");
-        d3.select(div_sa_plot).selectChild("svg").remove();
-        div_sa_plot.append(sa_plot);
-    }
+                }
+            });
 
-    draw_species_accumulation();
+            const div_clusters = document.querySelector("#clusters");
+            d3.select(div_clusters).selectChild("svg").remove();
+            div_clusters.append(plot);
+        }
+
+        draw_clusters();
+    </script>
+
+    <script type="module">
+
+        async function draw_ct_heatmap() {
+            const ct_data = await d3.json("./detail/clustertag_relative/json");
+            const ct_plot = Plot.plot({
+                marginLeft: 200,
+                marginBottom: 60,
+                padding: 0,
+                width: 900,
+                y: {label: null},
+                x: {
+                    tickRotate: -45,
+                    label: null
+                },
+                color: {type: "linear", legend: true, scheme: "turbo"},
+                marks: [
+                    Plot.cell(
+                        ct_data.data,
+                        {
+                            x: "cluster",
+                            y: "tag",
+                            fill: "rel_size",
+                            tip: true,
+                            inset: 0.5,
+                            channels: {size: "size"},
+                            sort: {
+                                y: "data",
+                                reduce: ([D]) => D.c_order
+                            }
+                        }
+                    )
+                ]
+
+            })
+
+            const div_ct_plot = document.querySelector("#clustertag_heatmap");
+            d3.select(div_ct_plot).selectChild("svg").remove();
+            div_ct_plot.append(ct_plot);
+        }
+
+        draw_ct_heatmap();
+    </script>
+
+    <script type="module">
+        async function draw_species_accumulation() {
+            const sa_data = await d3.json("./detail/species_accumulation/json");
+            const sa_plot = Plot.plot({
+                style: "overflow: visible;",
+                width: 900,
+                y: {grid: true},
+                marks: [
+                    Plot.line(sa_data.data, {
+                        x: "x", y: "y",
+                        stroke: "tag",
+                        tip: {
+                            format: {
+                                x: false,
+                                y: false,
+                                stroke: false
+                            }
+                        },
+                        channels: {tag: "tag"},
+                    }),
+
+                ]
+            });
+
+            const div_sa_plot = document.querySelector("#species_accumulation");
+            d3.select(div_sa_plot).selectChild("svg").remove();
+            div_sa_plot.append(sa_plot);
+        }
+
+        draw_species_accumulation();
     </script>
 
 
