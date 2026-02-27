@@ -42,71 +42,72 @@
         </table>
     </div>
 
-    {%  if object.completed %}
-    <div class="p-4 w-96 bg-stone-100 rounded-lg shadow-md">
-        <h2 class="pb-2 pt-2 text-lg font-serif font-bold">Global stats</h2>
-        <table class="table-auto min-w-full">
-            <tr>
-                <td class="font-semibold">Total data size:</td>
-                <td class="text-right font-mono"> {{ method_object.total_size }}</td>
-            </tr>
-            <tr>
-                <td class="font-semibold">Number of clusters:</td>
-                <td class="text-right font-mono"> {{ method_object.num_clusters }}</td>
-            </tr>
-            <tr>
-                <td class="font-semibold">Number of singletons:</td>
-                <td class="text-right font-mono"> {{ method_object.num_singletons }}</td>
-            </tr>
-            <tr>
-                <td class="font-semibold">Total number of unique sequences:</td>
-                <td class="text-right font-mono"> {{ method_object.num_genotypes}}</td>
-            </tr>
+    {% if object.completed %}
+        <div class="p-4 w-96 bg-stone-100 rounded-lg shadow-md">
+            <h2 class="pb-2 pt-2 text-lg font-serif font-bold">Global stats</h2>
+            <table class="table-auto min-w-full">
+                <tr>
+                    <td class="font-semibold">Total data size:</td>
+                    <td class="text-right font-mono"> {{ method_object.total_size }}</td>
+                </tr>
+                <tr>
+                    <td class="font-semibold">Number of clusters:</td>
+                    <td class="text-right font-mono"> {{ method_object.num_clusters }}</td>
+                </tr>
+                <tr>
+                    <td class="font-semibold">Number of singletons:</td>
+                    <td class="text-right font-mono"> {{ method_object.num_singletons }}</td>
+                </tr>
+                <tr>
+                    <td class="font-semibold">Total number of unique sequences:</td>
+                    <td class="text-right font-mono"> {{ method_object.num_genotypes }}</td>
+                </tr>
 
-        </table>
-    </div>
-    {%  endif %}
+            </table>
+        </div>
+    {% endif %}
 </div>
 {% if object.completed %}
-<div  class="my-4 p-4 w-11/12 bg-stone-100 rounded-lg shadow-md">
-    <h2 class="pb-2 pt-2 text-lg font-serif font-bold">Cluster size distribution (first 200 clusters)</h2>
-    <div x-data="" class="flex flex-row p-2">
-        <div class="flex ">
-            <label class="px-2">Y axis transform:</label>
-            <select x-on:input="set_transform" class="px-2">
-                <option value="size" selected>Linear</option>
-                <option value="size_log2">Log 2</option>
-                <option value="size_log10">Log 10</option>
-            </select>
+
+    <div class="my-4 p-4 w-11/12 bg-stone-100 rounded-lg shadow-md">
+        <h2 class="pb-2 pt-2 text-lg font-serif font-bold">Cluster size distribution (first 200 clusters)</h2>
+        <div x-data="" class="flex flex-row p-2">
+            <div class="flex ">
+                <label class="px-2">Y axis transform:</label>
+                <select x-on:input="set_transform" class="px-2">
+                    <option value="size" selected>Linear</option>
+                    <option value="size_log2">Log 2</option>
+                    <option value="size_log10">Log 10</option>
+                </select>
+            </div>
+        </div>
+        <div id="clusters" class="min-w-full">
         </div>
     </div>
-    <div id="clusters" class="min-w-full">
+    <div class="my-4 p-4 w-11/12 bg-stone-100 rounded-lg shadow-md"
+         x-data="{ open_ct: 0, init_ct: 0 }">
+        <h2 @click="open_ct = !open_ct; if(!init_ct) {init_ct=1; show_clustertable() }"
+            class="pb-2 pt-2 text-lg font-serif font-bold">
+            Cluster list <span x-show="!open_ct">(click to show)</span>
+        </h2>
+        <div x-show="open_ct" class="min-w-full">
+            <table id="clustertable"></table>
+        </div>
     </div>
-</div>
-<div class="my-4 p-4 w-11/12 bg-stone-100 rounded-lg shadow-md"
-     x-data="{ open_ct: 0, init_ct: 0 }">
-    <h2 @click="open_ct = !open_ct; if(!init_ct) {init_ct=1; show_clustertable() }"
-        class="pb-2 pt-2 text-lg font-serif font-bold">
-        Cluster list <span x-show="!open_ct">(click to show)</span>
-    </h2>
-    <div  x-show="open_ct" class="min-w-full">
-        <table id="clustertable"> </table>
+
+    <div class="my-4 p-4 w-11/12 bg-stone-100 rounded-lg shadow-md">
+        <h2 class="pb-2 pt-2 text-lg font-serif font-bold">Sample by otu heatmap</h2>
+
+        <div id="clustertag_heatmap" class="min-w-full">
+        </div>
     </div>
-</div>
 
-<div  class="my-4 p-4 w-11/12 bg-stone-100 rounded-lg shadow-md">
-    <h2 class="pb-2 pt-2 text-lg font-serif font-bold">Sample by otu heatmap</h2>
+    <div class="my-4 p-4 w-11/12 bg-stone-100 rounded-lg shadow-md">
+        <h2 class="pb-2 pt-2 text-lg font-serif font-bold">Species accumulation</h2>
 
-    <div id="clustertag_heatmap" class="min-w-full">
+        <div id="species_accumulation" class="min-w-full">
+        </div>
     </div>
-</div>
-
-<div  class="my-4 p-4 w-11/12 bg-stone-100 rounded-lg shadow-md">
-    <h2 class="pb-2 pt-2 text-lg font-serif font-bold">Species accumulation</h2>
-
-    <div id="species_accumulation" class="min-w-full">
-    </div>
-</div>
 {% endif %}
 
 
