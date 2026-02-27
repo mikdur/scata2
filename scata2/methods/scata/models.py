@@ -307,6 +307,11 @@ class ScataScataMethod(ScataMethod):
 
         clusters.sort(key=lambda a: len(a), reverse=True)
 
+        # with open("foo_{}.txt".format(self.job.pk), "w") as f:
+        #     for i, c in enumerate(clusters):
+        #         print("\n".join(["{};{}".format(i, a) for a in c]), file=f)
+
+
         with BytesIO() as cluster_file:
             with gzip.open(cluster_file, "wb") as gz:
                 pickle.dump(clusters, gz)
