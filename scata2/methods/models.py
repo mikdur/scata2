@@ -208,6 +208,7 @@ class ScataMethod(models.Model):
 
         # https://stackoverflow.com/questions/26938888/log-computations-in-python
         # n choose k can be implemented using gamma distribution
+
         def _combln(n, k):
             return gammaln(n + 1) - gammaln(n - k + 1)
 
