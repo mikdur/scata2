@@ -90,42 +90,30 @@
                         <input class="numberinput border focus:outline-none rounded-lg py-2
                             text-gray-700 w-full bg-white px-4 appearance-none
                               block leading-normal border-gray-300"
-                       type="number" name="cell_min" id="cell_min"
-                       value="{{ method_object.get_default_cell_min }}">
-            </div>
-        </form>
-    </div>
-    <div class="my-4 p-4 w-11/12 bg-stone-100 rounded-lg shadow-md">
-        <h2 class="pb-2 pt-2 text-lg font-serif font-bold">Cluster size distribution (first 200 clusters)</h2>
-        <div x-data="" class="flex flex-row p-2">
-            <div class="flex ">
-                <label class="px-2">Y axis transform:</label>
-                <select x-on:input="set_transform" class="px-2">
-                    <option value="size" selected>Linear</option>
-                    <option value="size_log2">Log 2</option>
-                    <option value="size_log10">Log 10</option>
-                </select>
-            </div>
-        </div>
-        <div id="clusters" class="min-w-full">
-        </div>
-    </div>
-    <div class="my-4 p-4 w-11/12 bg-stone-100 rounded-lg shadow-md"
-         x-data="{ open_ct: 0, init_ct: 0 }">
-        <h2 @click="open_ct = !open_ct; if(!init_ct) {init_ct=1; show_clustertable() }"
-            class="pb-2 pt-2 text-lg font-serif font-bold">
-            Cluster list <span x-show="!open_ct">(click to show)</span>
-        </h2>
-        <div x-show="open_ct" class="min-w-full">
-            <table id="clustertable"></table>
-        </div>
-    </div>
                                type="number" name="cell_min" id="cell_min"
                                value="{{ method_object.get_default_cell_min }}">
                     </div>
                 </div>
             </form>
 
+        </div>
+        <div class="my-4 p-4 w-11/12 bg-stone-100 rounded-lg shadow-md">
+            <h2 class="pb-2 pt-2 text-lg font-serif font-bold">Download</h2>
+            <table class="table-auto min-w-full">
+                <tr>
+                    <td class="font-semibold">Full OTU-matrix:</td>
+                    <td class="text-left font-mono">
+                        <a href="./detail/csv/matrix/{{ method_object.job.name|slugify }}.csv">{{ method_object.job.name|slugify }}.csv</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="font-semibold">Filtered OTU-matrix:</td>
+                    <td class="text-left font-mono">
+                        <a id="a_matrix"
+                           href="./detail/csv/matrix/{{ method_object.job.name|slugify }}-filtered.csv">{{ method_object.job.name|slugify }}-filtered.csv</a>
+                    </td>
+                </tr>
+            </table>
         </div>
         <div class="my-4 p-4 w-11/12 bg-stone-100 rounded-lg shadow-md">
             <h2 class="pb-2 pt-2 text-lg font-serif font-bold">Cluster size distribution (first 200 clusters)</h2>
@@ -353,9 +341,14 @@
         $("#settings").change($.debounce(500, function(e){
             queryString = $(this).serialize();
             update_graphs();
+            update_dl_url();
         }));
 
-
+        function update_dl_url() {
+            url = "./detail/csv/matrix/{{ method_object.job.name|slugify }}-filtered.csv?" +
+                queryString;
+            $("#a_matrix").attr("href", url);
+        }
         function update_graphs() {
             draw_ct_heatmap();
             draw_species_accumulation();

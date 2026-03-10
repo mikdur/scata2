@@ -131,6 +131,41 @@ class ScataMethod(models.Model):
         instance.cluster()
 
     # Called from view to generate data for visualisation
+    def get_csv_facet(self, facet, request=None):
+        if facet == "matrix":
+            return self.get_matrix(request=request)
+        else:
+            raise Http404("No such facet")
+
+
+    def get_matrix(self, request=None):
+        if request and request.GET.get("cluster_min", 0):
+            clusters = ScataCluster.objects.filter(job=self.job,
+                                                    size__gte=int(request.GET.get("cluster_min",
+                                                                                  self.get_default_cluster_min()))) \
+                            .order_by("-size")
+        else:
+            clusters = ScataCluster.objects.filter(job=self.job).order_by("-size")
+
+        columns = [c.name for c in clusters]
+        ret = [['sample'] + columns]
+        tags = ScataTag.objects.filter(job=self.job).order_by("name")
+
+        for i,t in enumerate(tags):
+            if request.GET.get("cell_min", 0):
+                tagclusters = ScataTagCluster.objects.filter(tag=t, cluster__in=[c.pk for c in clusters],
+                                                         size__gte=int(request.GET.get("cell_min",
+                                                                                       self.get_default_cell_min())))
+            else:
+                tagclusters = ScataTagCluster.objects.filter(tag=t, cluster__in=clusters)
+
+            line = {tc.cluster.name : tc.size for tc in tagclusters}
+            print(line)
+            ret.append([t.name] + [line.get(c,0) for c in columns])
+
+        return ret
+
+    # Called from view to generate data for visualisation
     def get_facet(self, facet, request=None):
 
         if facet == "clusters":
@@ -237,7 +272,7 @@ class ScataMethod(models.Model):
             N = sum(sizes)
 
             curve = [ ]
-            for n in np.linspace(1, N, num=50, dtype=np.float64):
+            for n in np.linspace(1, N, num=200, dtype=np.float64):
                 summation = np.float64(0.0)
                 for s in sizes:
                     summation += np.exp(_combln(N - s, n) - _combln(N, n))
@@ -255,10 +290,10 @@ class ScataMethod(models.Model):
         for tag in tags:
             stc = ScataTagCluster.objects.filter(tag=tag)
             for s in stc:
-                k=int(math.log10(s.size) * 10)
+                k=int(math.log10(s.size) * 20)
                 histogram[k] = histogram.get(k,0) + 1
 
-        return [{"x": k / 10,
+        return [{"x": k / 20,
                  "y": math.log10(v)} for k, v in histogram.items()]
 
     def get_default_cell_min(self):

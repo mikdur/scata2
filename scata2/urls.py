@@ -30,6 +30,8 @@ urlpatterns = [
     path("jobs/add/", views.JobCreateView.as_view(), name="job-add"),
     path("jobs/<int:pk>/detail", views.JobDetailView.as_view(), name="job-detail"),
     path("jobs/<int:pk>/detail/<facet>/json", views.JobDetailFacetJSONView.as_view(), name="job-detail-facet"),
+    path("jobs/<int:pk>/detail/csv/<facet>/<filename>", views.JobDetailFacetCSVView.as_view(),
+         name="job-detail-csv"),
     path("jobs/<int:pk>/delete/", views.JobDeleteView.as_view(), name="job-delete"),
     path("files/", views.FileListView.as_view(), name="file-list"),
     path("files/add/", views.FileCreateView.as_view(), name="file-add"),

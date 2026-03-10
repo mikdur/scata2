@@ -397,6 +397,23 @@ class JobDetailFacetJSONView(JSONResponseMixin, JobDetailView):
     def get_data(self, context):
         return dict(data=context['data'])
 
+class JobDetailFacetCSVView(CSVResponseMixin, JobDetailView):
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Need to add caching here
+        context['data'] = context['method_object'].get_csv_facet(self.kwargs['facet'],
+                                                             request=self.request)
+        return context
+
+    def get_data(self, context):
+        return context['data']
+
+    def get_filename(self, context):
+        return urllib.parse.quote("{}".format(self.kwargs['filename']),
+                                  safe="")
+
+
 
 class JobDeleteView(DeleteToTrashView):
     model = ScataJob
