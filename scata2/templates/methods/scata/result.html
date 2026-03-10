@@ -68,24 +68,26 @@
     {% endif %}
 </div>
 {% if object.completed %}
-    <div class="my-4 p-4 w-11/12 bg-stone-100 rounded-lg shadow-md">
-        <h2 class="pb-2 pt-2 text-lg font-serif font-bold">Display settings</h2>
-        <form id="settings">
-            <div class="mb-3">
-                <label for="cluster_min" class="block text-gray-700 text-sm font-bold mb-2">
-                    Minimum global cluster read depth:
-                </label>
-                <input class="numberinput border focus:outline-none rounded-lg py-2
+    <div>
+        <div class="sticky top-10 my-4 p-4 w-11/12 bg-stone-100 rounded-lg shadow-md">
+            <h2 class="pb-2 pt-2 text-lg font-serif font-bold">Filter settings</h2>
+            <form id="settings">
+                <div class="flex flex-wrap gap-8 w-full">
+                    <div class="mb-3 grow">
+                        <label for="cluster_min" class="block text-gray-700 text-sm font-bold mb-2">
+                            Minimum global cluster read depth:
+                        </label>
+                        <input class="numberinput border focus:outline-none rounded-lg py-2
                             text-gray-700 w-full bg-white px-4 appearance-none
                               block leading-normal border-gray-300"
-                       value="{{ method_object.get_default_cluster_min }}"
-                       type="number" name="cluster_min" id="cluster_min">
-            </div>
-            <div class="mb-3">
-                <label for="cell_min" class="block text-gray-700 text-sm font-bold mb-2">
-                    Minimum cell read count (in tag-otu matrix):
-                </label>
-                <input class="numberinput border focus:outline-none rounded-lg py-2
+                               value="{{ method_object.get_default_cluster_min }}"
+                               type="number" name="cluster_min" id="cluster_min">
+                    </div>
+                    <div class="mb-3 grow">
+                        <label for="cell_min" class="block text-gray-700 text-sm font-bold mb-2">
+                            Minimum cell read count (in tag-otu matrix):
+                        </label>
+                        <input class="numberinput border focus:outline-none rounded-lg py-2
                             text-gray-700 w-full bg-white px-4 appearance-none
                               block leading-normal border-gray-300"
                        type="number" name="cell_min" id="cell_min"
@@ -118,18 +120,54 @@
             <table id="clustertable"></table>
         </div>
     </div>
+                               type="number" name="cell_min" id="cell_min"
+                               value="{{ method_object.get_default_cell_min }}">
+                    </div>
+                </div>
+            </form>
 
-    <div class="my-4 p-4 w-11/12 bg-stone-100 rounded-lg shadow-md">
-        <h2 class="pb-2 pt-2 text-lg font-serif font-bold">Sample by otu heatmap</h2>
-
-        <div id="clustertag_heatmap" class="min-w-full">
         </div>
-    </div>
+        <div class="my-4 p-4 w-11/12 bg-stone-100 rounded-lg shadow-md">
+            <h2 class="pb-2 pt-2 text-lg font-serif font-bold">Cluster size distribution (first 200 clusters)</h2>
+            <div x-data="" class="flex flex-row p-2">
+                <div class="flex ">
+                    <label class="px-2">Y axis transform:</label>
+                    <select x-on:input="set_transform" class="px-2">
+                        <option value="size" selected>Linear</option>
+                        <option value="size_log2">Log 2</option>
+                        <option value="size_log10">Log 10</option>
+                    </select>
+                </div>
+            </div>
+            <div id="clusters" class="min-w-full">
+            </div>
+        </div>
+        <div class="my-4 p-4 w-11/12 bg-stone-100 rounded-lg shadow-md"
+             x-data="{ open_ct: 0, init_ct: 0 }">
+            <h2 @click="open_ct = !open_ct; if(!init_ct) {init_ct=1; show_clustertable() }"
+                class="pb-2 pt-2 text-lg font-serif font-bold">
+                Cluster list <span x-show="!open_ct">(click to show)</span>
+            </h2>
+            <div x-show="open_ct" class="min-w-full">
+                <table id="clustertable"></table>
+            </div>
+        </div>
 
-    <div class="my-4 p-4 w-11/12 bg-stone-100 rounded-lg shadow-md">
-        <h2 class="pb-2 pt-2 text-lg font-serif font-bold">Species accumulation</h2>
+        <div class="my-4 p-4 w-11/12 bg-stone-100 rounded-lg shadow-md">
+            <h2 class="pb-2 pt-2 text-lg font-serif font-bold">Sample by otu heatmap</h2>
+
+            <div id="clustertag_heatmap" class="min-w-full">
+            </div>
+        </div>
+
+        <div class="my-4 p-4 w-11/12 bg-stone-100 rounded-lg shadow-md">
+            <h2 class="pb-2 pt-2 text-lg font-serif font-bold">Rarefaction curves</h2>
 
         <div id="species_accumulation" class="min-w-full">
+            <div id="species_accumulation" class="min-w-full">
+            </div>
+        </div>
+
         </div>
     </div>
 {% endif %}
