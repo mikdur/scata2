@@ -599,6 +599,9 @@ class ScataScataMethod(ScataMethod):
                     return (t, d['object'])
             raise KeyError("Sequence id {} not found in tags".format(seq_id))
 
+        # Create format string with 0-padding of the id that fits the largest cluster ID
+        id_format = "{}_{:0>" + str(len(str(len(clusters)))) + "}"
+
         for c in range(start, len(clusters), offset):
             cluster_set = clusters[c]
             open_tag_clusters = {}
@@ -608,7 +611,7 @@ class ScataScataMethod(ScataMethod):
 
             cluster = ScataCluster()
             cluster.job = cls_instance.job
-            cluster.name = "{}_{}".format(cluster.job.pk, c)
+            cluster.name = id_format.format(cluster.job.pk, c)
             cluster.num_genotypes = len(cluster_set)
             cluster.size = 0
             cluster.num_clusters = 0
