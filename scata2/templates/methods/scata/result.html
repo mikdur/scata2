@@ -151,11 +151,15 @@
         <div class="my-4 p-4 w-11/12 bg-stone-100 rounded-lg shadow-md">
             <h2 class="pb-2 pt-2 text-lg font-serif font-bold">Rarefaction curves</h2>
 
-        <div id="species_accumulation" class="min-w-full">
             <div id="species_accumulation" class="min-w-full">
             </div>
         </div>
 
+        <div class="my-4 p-4 w-11/12 bg-stone-100 rounded-lg shadow-md">
+            <h2 class="pb-2 pt-2 text-lg font-serif font-bold">Cell depth</h2>
+
+            <div id="cell_histogram" class="min-w-full">
+            </div>
         </div>
     </div>
 {% endif %}
@@ -335,6 +339,30 @@
         window.draw_species_accumulation = draw_species_accumulation;
     </script>
 
+    <script type="module">
+        async function draw_cell_histogram() {
+            const ch_data = await d3.json("./detail/cell_histogram/json");
+            const ch_plot = Plot.plot({
+                style: "overflow: visible;",
+                width: 900,
+                y: {grid: true,
+                    },
+                marks: [
+                    Plot.barY(ch_data.data, {
+                        x: "x", y: "y",
+                    }),
+
+                ]
+            });
+
+            const div_ch_plot = document.querySelector("#cell_histogram");
+            d3.select(div_ch_plot).selectChild("svg").remove();
+            div_ch_plot.append(ch_plot);
+        }
+
+        draw_cell_histogram();
+        window.draw_cell_histogram = draw_cell_histogram;
+    </script>
 
     <script>
         var queryString = "";
